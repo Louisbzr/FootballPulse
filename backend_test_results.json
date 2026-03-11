@@ -1,0 +1,142 @@
+{
+  "summary": {
+    "tests_run": 19,
+    "tests_passed": 19,
+    "success_rate": 100.0
+  },
+  "results": [
+    {
+      "test": "User Registration",
+      "success": true,
+      "endpoint": "auth/register",
+      "details": "Status: 200",
+      "timestamp": "2026-03-11T23:03:46.334765"
+    },
+    {
+      "test": "User Login",
+      "success": true,
+      "endpoint": "auth/login",
+      "details": "Status: 200",
+      "timestamp": "2026-03-11T23:03:46.679245"
+    },
+    {
+      "test": "Get Current User",
+      "success": true,
+      "endpoint": "auth/me",
+      "details": "Status: 200",
+      "timestamp": "2026-03-11T23:03:46.832587"
+    },
+    {
+      "test": "Get All Matches",
+      "success": true,
+      "endpoint": "matches",
+      "details": "Status: 200",
+      "timestamp": "2026-03-11T23:03:46.962274"
+    },
+    {
+      "test": "Get Finished Matches",
+      "success": true,
+      "endpoint": "matches?status=finished",
+      "details": "Status: 200",
+      "timestamp": "2026-03-11T23:03:47.104273"
+    },
+    {
+      "test": "Get Upcoming Matches",
+      "success": true,
+      "endpoint": "matches?status=upcoming",
+      "details": "Status: 200",
+      "timestamp": "2026-03-11T23:03:47.293972"
+    },
+    {
+      "test": "Get Champions League Matches",
+      "success": true,
+      "endpoint": "matches?league=Champions League",
+      "details": "Status: 200",
+      "timestamp": "2026-03-11T23:03:47.408444"
+    },
+    {
+      "test": "Get Match Detail",
+      "success": true,
+      "endpoint": "matches/match_7",
+      "details": "Status: 200",
+      "timestamp": "2026-03-11T23:03:47.617182"
+    },
+    {
+      "test": "Get Match Events",
+      "success": true,
+      "endpoint": "matches/match_7/events",
+      "details": "Status: 200",
+      "timestamp": "2026-03-11T23:03:47.738007"
+    },
+    {
+      "test": "Place Bet",
+      "success": true,
+      "endpoint": "bets",
+      "details": "Status: 200",
+      "timestamp": "2026-03-11T23:03:47.870312"
+    },
+    {
+      "test": "Get My Bets",
+      "success": true,
+      "endpoint": "bets/my",
+      "details": "Status: 200",
+      "timestamp": "2026-03-11T23:03:47.992306"
+    },
+    {
+      "test": "Post Comment",
+      "success": true,
+      "endpoint": "matches/match_7/comments",
+      "details": "Status: 200",
+      "timestamp": "2026-03-11T23:03:48.142780"
+    },
+    {
+      "test": "Get Comments",
+      "success": true,
+      "endpoint": "matches/match_7/comments",
+      "details": "Status: 200",
+      "timestamp": "2026-03-11T23:03:48.368095"
+    },
+    {
+      "test": "Like Comment",
+      "success": true,
+      "endpoint": "comments/fa77146b-6baf-4556-9e65-69dd0f0f5cb1/like",
+      "details": "Status: 200",
+      "timestamp": "2026-03-11T23:03:48.483403"
+    },
+    {
+      "test": "Get Leaderboard",
+      "success": true,
+      "endpoint": "leaderboard",
+      "details": "Status: 200",
+      "timestamp": "2026-03-11T23:03:48.595470"
+    },
+    {
+      "test": "Get Dashboard",
+      "success": true,
+      "endpoint": "dashboard",
+      "details": "Status: 200",
+      "timestamp": "2026-03-11T23:03:48.781627"
+    },
+    {
+      "test": "Get Teams",
+      "success": true,
+      "endpoint": "teams",
+      "details": "Status: 200",
+      "timestamp": "2026-03-11T23:03:48.891628"
+    },
+    {
+      "test": "Get Badges",
+      "success": true,
+      "endpoint": "badges",
+      "details": "Status: 200",
+      "timestamp": "2026-03-11T23:03:49.010817"
+    },
+    {
+      "test": "Update Profile",
+      "success": true,
+      "endpoint": "auth/profile",
+      "details": "Status: 200",
+      "timestamp": "2026-03-11T23:03:49.215087"
+    }
+  ]
+}
