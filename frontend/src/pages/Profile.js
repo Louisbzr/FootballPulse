@@ -20,10 +20,10 @@ export default function Profile() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!user) { navigate('/login'); return; }
+    if (!user) return;
     setForm({ username: user.username || '', favorite_team: user.favorite_team || '' });
     teamsAPI.list().then(r => setTeams(r.data)).catch(() => {});
-  }, [user, navigate]);
+  }, [user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

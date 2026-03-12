@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "@/components/ui/sonner";
 import Navbar from "@/components/Navbar";
+import DailyLogin from "@/components/DailyLogin";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
@@ -13,11 +14,15 @@ import Predictions from "@/pages/Predictions";
 import Leaderboard from "@/pages/Leaderboard";
 import Dashboard from "@/pages/Dashboard";
 import Profile from "@/pages/Profile";
+import PackOpening from "@/pages/PackOpening";
+import Collection from "@/pages/Collection";
 import { seedAPI } from "@/lib/api";
+import api from "@/lib/api";
 
 function App() {
   useEffect(() => {
     seedAPI.seed().catch(() => {});
+    api.post('/seed-players').catch(() => {});
   }, []);
 
   return (
@@ -25,6 +30,7 @@ function App() {
       <div className="App min-h-screen bg-[#050505]">
         <BrowserRouter>
           <Navbar />
+          <DailyLogin />
           <main className="pt-16">
             <Routes>
               <Route path="/" element={<Home />} />
@@ -36,6 +42,8 @@ function App() {
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/packs" element={<PackOpening />} />
+              <Route path="/collection" element={<Collection />} />
             </Routes>
           </main>
         </BrowserRouter>

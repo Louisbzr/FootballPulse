@@ -11,6 +11,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 from passlib.context import CryptContext
 import jwt
+import random
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -102,6 +103,71 @@ BADGES_INFO = {
     "football_brain": {"name": "Football Brain", "description": "100 comments", "icon": "message-circle"},
 }
 
+# ─── PLAYERS & GACHA ───
+PLAYERS_DATA = [
+    # LEGENDARY (5) - ~0.5% bronze, 2% silver, 7% gold
+    {"id":"p_messi","name":"Lionel Messi","pos":"RW","nat":"Argentina","rating":93,"rarity":"legendary","current_team":"Inter Miami","teams":{"team_1":10,"team_5":5}},
+    {"id":"p_mbappe","name":"Kylian Mbappé","pos":"ST","nat":"France","rating":92,"rarity":"legendary","current_team":"Real Madrid","teams":{"team_2":12,"team_5":6}},
+    {"id":"p_haaland","name":"Erling Haaland","pos":"ST","nat":"Norway","rating":91,"rarity":"legendary","current_team":"Manchester City","teams":{"team_3":12}},
+    {"id":"p_salah","name":"Mohamed Salah","pos":"RW","nat":"Egypt","rating":90,"rarity":"legendary","current_team":"Liverpool","teams":{"team_4":12}},
+    {"id":"p_ronaldo","name":"Cristiano Ronaldo","pos":"ST","nat":"Portugal","rating":91,"rarity":"legendary","current_team":"Al Nassr","teams":{"team_2":8,"team_7":5}},
+    # EPIC (10)
+    {"id":"p_debruyne","name":"Kevin De Bruyne","pos":"CM","nat":"Belgium","rating":88,"rarity":"epic","current_team":"Manchester City","teams":{"team_3":9}},
+    {"id":"p_vinicius","name":"Vinícius Jr","pos":"LW","nat":"Brazil","rating":88,"rarity":"epic","current_team":"Real Madrid","teams":{"team_2":9}},
+    {"id":"p_bellingham","name":"Jude Bellingham","pos":"CM","nat":"England","rating":87,"rarity":"epic","current_team":"Real Madrid","teams":{"team_2":9}},
+    {"id":"p_lewandowski","name":"R. Lewandowski","pos":"ST","nat":"Poland","rating":87,"rarity":"epic","current_team":"FC Barcelona","teams":{"team_1":9,"team_6":5}},
+    {"id":"p_kane","name":"Harry Kane","pos":"ST","nat":"England","rating":87,"rarity":"epic","current_team":"Bayern Munich","teams":{"team_6":9}},
+    {"id":"p_vandijk","name":"Virgil van Dijk","pos":"CB","nat":"Netherlands","rating":87,"rarity":"epic","current_team":"Liverpool","teams":{"team_4":9}},
+    {"id":"p_musiala","name":"Jamal Musiala","pos":"AM","nat":"Germany","rating":86,"rarity":"epic","current_team":"Bayern Munich","teams":{"team_6":8}},
+    {"id":"p_pedri","name":"Pedri","pos":"CM","nat":"Spain","rating":86,"rarity":"epic","current_team":"FC Barcelona","teams":{"team_1":8}},
+    {"id":"p_maignan","name":"Mike Maignan","pos":"GK","nat":"France","rating":86,"rarity":"epic","current_team":"AC Milan","teams":{"team_8":8}},
+    {"id":"p_dembele","name":"O. Dembélé","pos":"RW","nat":"France","rating":85,"rarity":"epic","current_team":"PSG","teams":{"team_5":8,"team_1":4}},
+    # RARE (14)
+    {"id":"p_rodri","name":"Rodri","pos":"CDM","nat":"Spain","rating":85,"rarity":"rare","current_team":"Manchester City","teams":{"team_3":7}},
+    {"id":"p_foden","name":"Phil Foden","pos":"AM","nat":"England","rating":84,"rarity":"rare","current_team":"Manchester City","teams":{"team_3":7}},
+    {"id":"p_taa","name":"T. Alexander-Arnold","pos":"RB","nat":"England","rating":84,"rarity":"rare","current_team":"Liverpool","teams":{"team_4":7}},
+    {"id":"p_hakimi","name":"Achraf Hakimi","pos":"RB","nat":"Morocco","rating":84,"rarity":"rare","current_team":"PSG","teams":{"team_5":7}},
+    {"id":"p_kimmich","name":"Joshua Kimmich","pos":"CDM","nat":"Germany","rating":84,"rarity":"rare","current_team":"Bayern Munich","teams":{"team_6":7}},
+    {"id":"p_vlahovic","name":"Dušan Vlahović","pos":"ST","nat":"Serbia","rating":82,"rarity":"rare","current_team":"Juventus","teams":{"team_7":6}},
+    {"id":"p_theo","name":"Theo Hernández","pos":"LB","nat":"France","rating":84,"rarity":"rare","current_team":"AC Milan","teams":{"team_8":7,"team_2":3}},
+    {"id":"p_leao","name":"Rafael Leão","pos":"LW","nat":"Portugal","rating":83,"rarity":"rare","current_team":"AC Milan","teams":{"team_8":7}},
+    {"id":"p_camavinga","name":"E. Camavinga","pos":"CM","nat":"France","rating":82,"rarity":"rare","current_team":"Real Madrid","teams":{"team_2":6}},
+    {"id":"p_araujo","name":"Ronald Araújo","pos":"CB","nat":"Uruguay","rating":83,"rarity":"rare","current_team":"FC Barcelona","teams":{"team_1":6}},
+    {"id":"p_sane","name":"Leroy Sané","pos":"RW","nat":"Germany","rating":83,"rarity":"rare","current_team":"Bayern Munich","teams":{"team_6":7,"team_3":3}},
+    {"id":"p_marquinhos","name":"Marquinhos","pos":"CB","nat":"Brazil","rating":84,"rarity":"rare","current_team":"PSG","teams":{"team_5":7}},
+    {"id":"p_diaz","name":"Luis Díaz","pos":"LW","nat":"Colombia","rating":82,"rarity":"rare","current_team":"Liverpool","teams":{"team_4":6}},
+    {"id":"p_gavi","name":"Gavi","pos":"CM","nat":"Spain","rating":80,"rarity":"rare","current_team":"FC Barcelona","teams":{"team_1":6}},
+    # COMMON (11)
+    {"id":"p_christensen","name":"A. Christensen","pos":"CB","nat":"Denmark","rating":78,"rarity":"common","current_team":"FC Barcelona","teams":{"team_1":3}},
+    {"id":"p_nacho","name":"Nacho","pos":"CB","nat":"Spain","rating":76,"rarity":"common","current_team":"Real Madrid","teams":{"team_2":3}},
+    {"id":"p_grealish","name":"Jack Grealish","pos":"LW","nat":"England","rating":79,"rarity":"common","current_team":"Manchester City","teams":{"team_3":4}},
+    {"id":"p_jones","name":"Curtis Jones","pos":"CM","nat":"England","rating":76,"rarity":"common","current_team":"Liverpool","teams":{"team_4":3}},
+    {"id":"p_ramos","name":"Gonçalo Ramos","pos":"ST","nat":"Portugal","rating":78,"rarity":"common","current_team":"PSG","teams":{"team_5":4}},
+    {"id":"p_goretzka","name":"Leon Goretzka","pos":"CM","nat":"Germany","rating":79,"rarity":"common","current_team":"Bayern Munich","teams":{"team_6":4}},
+    {"id":"p_kostic","name":"Filip Kostić","pos":"LW","nat":"Serbia","rating":76,"rarity":"common","current_team":"Juventus","teams":{"team_7":3}},
+    {"id":"p_bennacer","name":"I. Bennacer","pos":"CM","nat":"Algeria","rating":78,"rarity":"common","current_team":"AC Milan","teams":{"team_8":4}},
+    {"id":"p_ferrantorres","name":"Ferran Torres","pos":"RW","nat":"Spain","rating":77,"rarity":"common","current_team":"FC Barcelona","teams":{"team_1":3,"team_3":2}},
+    {"id":"p_rugani","name":"Daniele Rugani","pos":"CB","nat":"Italy","rating":73,"rarity":"common","current_team":"Juventus","teams":{"team_7":2}},
+    {"id":"p_asensio","name":"Marco Asensio","pos":"RW","nat":"Spain","rating":77,"rarity":"common","current_team":"PSG","teams":{"team_5":3,"team_2":2}},
+]
+
+PACKS_CONFIG = {
+    "bronze": {"cost": 50, "cards": 1, "probs": {"legendary": 0.5, "epic": 2.5, "rare": 12, "common": 85}},
+    "silver": {"cost": 150, "cards": 2, "probs": {"legendary": 2, "epic": 8, "rare": 25, "common": 65}},
+    "gold": {"cost": 300, "cards": 3, "probs": {"legendary": 7, "epic": 15, "rare": 33, "common": 45}},
+}
+
+FRAMES = [
+    {"id": "default", "name": "Default", "cost": 0},
+    {"id": "bronze", "name": "Bronze", "cost": 100},
+    {"id": "silver", "name": "Silver", "cost": 250},
+    {"id": "gold", "name": "Gold", "cost": 500},
+    {"id": "neon", "name": "Neon Green", "cost": 750},
+    {"id": "legendary", "name": "Legendary Fire", "cost": 1500},
+]
+
+SELL_PRICES = {"common": 10, "rare": 30, "epic": 75, "legendary": 250}
+
 def get_level(xp):
     level = "Rookie"
     for l in LEVELS:
@@ -138,6 +204,50 @@ async def check_badges(user_id):
             badges.append("hot_streak")
     await db.users.update_one({"id": user_id}, {"$set": {"badges": badges}})
 
+# ─── Gacha & Daily Helpers ───
+def get_streak_multiplier(streak):
+    if streak >= 30: return 3.0
+    if streak >= 7: return 2.0
+    if streak >= 3: return 1.5
+    return 1.0
+
+def roll_rarity(pack_type):
+    probs = PACKS_CONFIG[pack_type]["probs"]
+    r = random.random() * 100
+    cumulative = 0
+    for rarity in ["legendary", "epic", "rare", "common"]:
+        cumulative += probs[rarity]
+        if r < cumulative:
+            return rarity
+    return "common"
+
+def pick_player(rarity):
+    pool = [p for p in PLAYERS_DATA if p["rarity"] == rarity]
+    if not pool:
+        pool = [p for p in PLAYERS_DATA if p["rarity"] == "common"]
+    return random.choice(pool)
+
+async def calculate_user_boosts(user_id, match):
+    """Calculate total boost % from user's collected players for a given match"""
+    collection = await db.user_players.find({"user_id": user_id}, {"_id": 0}).to_list(500)
+    if not collection:
+        return 0, []
+    owned_player_ids = set(c["player_id"] for c in collection)
+    home_team_id = match.get("home_team", {}).get("id", "")
+    away_team_id = match.get("away_team", {}).get("id", "")
+    total_boost = 0
+    active_boosts = []
+    for pd in PLAYERS_DATA:
+        if pd["id"] not in owned_player_ids:
+            continue
+        teams = pd.get("teams", {})
+        for team_id, boost_pct in teams.items():
+            if team_id == home_team_id or team_id == away_team_id:
+                total_boost += boost_pct
+                active_boosts.append({"player": pd["name"], "team_id": team_id, "boost": boost_pct, "rarity": pd["rarity"]})
+    total_boost = min(total_boost, 25)  # Cap at 25%
+    return total_boost, active_boosts
+
 # ─── AUTH ROUTES ───
 @api_router.post("/auth/register")
 async def register(data: UserRegister):
@@ -159,6 +269,11 @@ async def register(data: UserRegister):
         "xp": 0,
         "level": "Rookie",
         "badges": [],
+        "login_streak": 0,
+        "last_daily_claim": "",
+        "avatar_frame": "default",
+        "owned_frames": ["default"],
+        "avatar_player_id": None,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     await db.users.insert_one(user)
@@ -267,6 +382,9 @@ async def place_bet(data: BetCreate, user=Depends(get_current_user)):
     if match["status"] == "finished":
         raise HTTPException(status_code=400, detail="Match already finished")
     odds = ODDS_MAP.get(data.bet_type, 1.8)
+    # Apply player collection boosts
+    total_boost, active_boosts = await calculate_user_boosts(user["id"], match)
+    boosted_odds = round(odds * (1 + total_boost / 100), 2)
     bet = {
         "id": str(uuid.uuid4()),
         "user_id": user["id"],
@@ -276,8 +394,10 @@ async def place_bet(data: BetCreate, user=Depends(get_current_user)):
         "bet_type": data.bet_type,
         "prediction": data.prediction,
         "amount": data.amount,
-        "odds": odds,
-        "potential_win": round(data.amount * odds),
+        "base_odds": odds,
+        "boost": total_boost,
+        "odds": boosted_odds,
+        "potential_win": round(data.amount * boosted_odds),
         "status": "pending",
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
@@ -402,6 +522,148 @@ async def get_teams():
 async def get_badges():
     return BADGES_INFO
 
+# ─── DAILY LOGIN ───
+@api_router.post("/daily-claim")
+async def claim_daily(user=Depends(get_current_user)):
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    last_claim = user.get("last_daily_claim", "")
+    if last_claim == today:
+        raise HTTPException(status_code=400, detail="Already claimed today")
+    yesterday = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
+    streak = user.get("login_streak", 0)
+    if last_claim == yesterday:
+        streak += 1
+    else:
+        streak = 1
+    multiplier = get_streak_multiplier(streak)
+    reward = int(20 * multiplier)
+    await db.users.update_one({"id": user["id"]}, {"$set": {
+        "last_daily_claim": today,
+        "login_streak": streak,
+    }, "$inc": {"virtual_credits": reward}})
+    return {"reward": reward, "streak": streak, "multiplier": multiplier, "total_credits": user.get("virtual_credits", 0) + reward}
+
+@api_router.get("/daily-status")
+async def daily_status(user=Depends(get_current_user)):
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    last_claim = user.get("last_daily_claim", "")
+    streak = user.get("login_streak", 0)
+    claimed_today = last_claim == today
+    multiplier = get_streak_multiplier(streak if claimed_today else max(streak, 1))
+    return {"claimed_today": claimed_today, "streak": streak, "multiplier": multiplier, "next_reward": int(20 * multiplier)}
+
+# ─── PACKS / GACHA ───
+@api_router.get("/packs")
+async def get_packs():
+    return PACKS_CONFIG
+
+@api_router.post("/packs/open/{pack_type}")
+async def open_pack(pack_type: str, user=Depends(get_current_user)):
+    if pack_type not in PACKS_CONFIG:
+        raise HTTPException(status_code=400, detail="Invalid pack type")
+    pack = PACKS_CONFIG[pack_type]
+    fresh_user = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    if fresh_user["virtual_credits"] < pack["cost"]:
+        raise HTTPException(status_code=400, detail="Insufficient credits")
+    await db.users.update_one({"id": user["id"]}, {"$inc": {"virtual_credits": -pack["cost"]}})
+    pulled = []
+    for _ in range(pack["cards"]):
+        rarity = roll_rarity(pack_type)
+        player = pick_player(rarity)
+        entry = {
+            "id": str(uuid.uuid4()),
+            "user_id": user["id"],
+            "player_id": player["id"],
+            "obtained_at": datetime.now(timezone.utc).isoformat(),
+            "source": f"{pack_type}_pack",
+        }
+        await db.user_players.insert_one({**entry})
+        pulled.append({**player, "entry_id": entry["id"]})
+    updated = await db.users.find_one({"id": user["id"]}, {"_id": 0, "password_hash": 0})
+    return {"players": pulled, "remaining_credits": updated["virtual_credits"]}
+
+# ─── COLLECTION ───
+@api_router.get("/collection")
+async def get_collection(user=Depends(get_current_user)):
+    entries = await db.user_players.find({"user_id": user["id"]}, {"_id": 0}).to_list(500)
+    count_map = {}
+    for e in entries:
+        pid = e["player_id"]
+        if pid not in count_map:
+            count_map[pid] = {"count": 0, "first_obtained": e["obtained_at"]}
+        count_map[pid]["count"] += 1
+    collection = []
+    for p in PLAYERS_DATA:
+        info = count_map.get(p["id"])
+        collection.append({**p, "owned": info is not None, "count": info["count"] if info else 0,
+                           "first_obtained": info["first_obtained"] if info else None})
+    return collection
+
+@api_router.post("/collection/sell/{player_id}")
+async def sell_player(player_id: str, user=Depends(get_current_user)):
+    entry = await db.user_players.find_one({"user_id": user["id"], "player_id": player_id})
+    if not entry:
+        raise HTTPException(status_code=400, detail="Player not in collection")
+    count = await db.user_players.count_documents({"user_id": user["id"], "player_id": player_id})
+    if count <= 1:
+        raise HTTPException(status_code=400, detail="Cannot sell last copy")
+    player_info = next((p for p in PLAYERS_DATA if p["id"] == player_id), None)
+    if not player_info:
+        raise HTTPException(status_code=404, detail="Player not found")
+    sell_price = SELL_PRICES.get(player_info["rarity"], 10)
+    await db.user_players.delete_one({"_id": entry["_id"]})
+    await db.users.update_one({"id": user["id"]}, {"$inc": {"virtual_credits": sell_price}})
+    updated = await db.users.find_one({"id": user["id"]}, {"_id": 0, "password_hash": 0})
+    return {"sold": player_info["name"], "credits_earned": sell_price, "remaining_credits": updated["virtual_credits"]}
+
+# ─── PLAYERS ───
+@api_router.get("/players")
+async def get_all_players():
+    return PLAYERS_DATA
+
+# ─── AVATAR / FRAMES ───
+@api_router.get("/frames")
+async def get_frames():
+    return FRAMES
+
+@api_router.post("/avatar/frame/{frame_id}")
+async def buy_frame(frame_id: str, user=Depends(get_current_user)):
+    frame = next((f for f in FRAMES if f["id"] == frame_id), None)
+    if not frame:
+        raise HTTPException(status_code=404, detail="Frame not found")
+    owned_frames = user.get("owned_frames", ["default"])
+    if frame_id in owned_frames:
+        await db.users.update_one({"id": user["id"]}, {"$set": {"avatar_frame": frame_id}})
+        return {"message": "Frame equipped", "frame": frame_id}
+    fresh_user = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    if fresh_user["virtual_credits"] < frame["cost"]:
+        raise HTTPException(status_code=400, detail="Insufficient credits")
+    await db.users.update_one({"id": user["id"]}, {
+        "$inc": {"virtual_credits": -frame["cost"]},
+        "$set": {"avatar_frame": frame_id},
+        "$addToSet": {"owned_frames": frame_id}
+    })
+    return {"message": "Frame purchased and equipped", "frame": frame_id}
+
+@api_router.post("/avatar/player/{player_id}")
+async def set_player_avatar(player_id: str, user=Depends(get_current_user)):
+    owned = await db.user_players.find_one({"user_id": user["id"], "player_id": player_id})
+    if not owned:
+        raise HTTPException(status_code=400, detail="Player not in collection")
+    player = next((p for p in PLAYERS_DATA if p["id"] == player_id), None)
+    avatar_url = f"https://api.dicebear.com/7.x/avataaars/svg?seed={player['name'].replace(' ','')}"
+    await db.users.update_one({"id": user["id"]}, {"$set": {"avatar": avatar_url, "avatar_player_id": player_id}})
+    return {"message": "Avatar updated", "avatar": avatar_url}
+
+# ─── BOOSTS ───
+@api_router.get("/boosts/{match_id}")
+async def get_boosts(match_id: str, user=Depends(get_current_user)):
+    match = await db.matches.find_one({"id": match_id}, {"_id": 0})
+    if not match:
+        raise HTTPException(status_code=404, detail="Match not found")
+    total_boost, active = await calculate_user_boosts(user["id"], match)
+    return {"total_boost": total_boost, "active_boosts": active}
+
 # ─── SEED ───
 @api_router.post("/seed")
 async def seed_data():
@@ -516,7 +778,24 @@ async def seed_data():
     ]
     for e in events:
         await db.match_events.insert_one({**e})
-    return {"message": "Seeded", "matches": len(matches), "events": len(events), "teams": len(teams)}
+
+    # Seed players
+    existing_players = await db.players.count_documents({})
+    if existing_players == 0:
+        for p in PLAYERS_DATA:
+            await db.players.insert_one({**p})
+
+    return {"message": "Seeded", "matches": len(matches), "events": len(events), "teams": len(teams), "players": len(PLAYERS_DATA)}
+
+# Separate player seed for when matches already exist
+@api_router.post("/seed-players")
+async def seed_players():
+    existing = await db.players.count_documents({})
+    if existing > 0:
+        return {"message": "Players already seeded", "count": existing}
+    for p in PLAYERS_DATA:
+        await db.players.insert_one({**p})
+    return {"message": "Players seeded", "count": len(PLAYERS_DATA)}
 
 # ─── Include router ───
 app.include_router(api_router)

@@ -6,7 +6,9 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import { Coins, TrendingUp, Target, Award, MessageCircle, Loader2, Zap, Trophy, Flame, Brain } from 'lucide-react';
+import { Coins, TrendingUp, Target, Award, MessageCircle, Loader2, Zap, Trophy, Flame, Brain, BookOpen, Package } from 'lucide-react';
+
+import api from '@/lib/api';
 
 const BADGE_ICONS = {
   top_predictor: Trophy,
@@ -37,17 +39,23 @@ export default function Dashboard() {
   const [data, setData] = useState(null);
   const [allBadges, setAllBadges] = useState({});
   const [loading, setLoading] = useState(true);
+  const [collectionCount, setCollectionCount] = useState(0);
+  const [dailyStatus, setDailyStatus] = useState(null);
 
   useEffect(() => {
-    if (!user) { navigate('/login'); return; }
+    if (!user) return;
     Promise.all([
       dashboardAPI.get(),
       badgesAPI.list(),
-    ]).then(([d, b]) => {
+      api.get('/collection').catch(() => ({ data: [] })),
+      api.get('/daily-status').catch(() => ({ data: null })),
+    ]).then(([d, b, c, ds]) => {
       setData(d.data);
       setAllBadges(b.data);
-    }).catch(() => navigate('/login')).finally(() => setLoading(false));
-  }, [user, navigate]);
+      setCollectionCount(c.data?.filter(p => p.owned)?.length || 0);
+      setDailyStatus(ds.data);
+    }).catch(() => {}).finally(() => setLoading(false));
+  }, [user]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 text-[#39FF14] animate-spin" /></div>;
   if (!data) return null;
@@ -62,7 +70,9 @@ export default function Dashboard() {
     { label: 'Credits', value: data.user?.virtual_credits?.toLocaleString(), icon: Coins, color: '#FFD700' },
     { label: 'Win Rate', value: `${stats.win_rate}%`, icon: TrendingUp, color: '#39FF14' },
     { label: 'Total Bets', value: stats.total_bets, icon: Target, color: '#00F0FF' },
-    { label: 'Comments', value: stats.comments, icon: MessageCircle, color: '#A78BFA' },
+    { label: 'Collection', value: `${collectionCount}/40`, icon: BookOpen, color: '#A855F7' },
+    { label: 'Streak', value: `${dailyStatus?.streak || 0}d`, icon: Flame, color: '#FF0055' },
+    { label: 'Comments', value: stats.comments, icon: MessageCircle, color: '#888' },
   ];
 
   return (
@@ -98,7 +108,7 @@ export default function Dashboard() {
       </Card>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 stagger-children" data-testid="stat-cards">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6 stagger-children" data-testid="stat-cards">
         {statCards.map(({ label, value, icon: Icon, color }) => (
           <Card key={label} className="bg-[#121212] border-white/5 p-4 animate-fadeInUp" data-testid={`stat-${label.toLowerCase().replace(/\s/g, '-')}`}>
             <div className="flex items-center gap-2 mb-2">

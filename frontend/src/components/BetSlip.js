@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { betsAPI } from '@/lib/api';
 import { Card } from '@/components/ui/card';
@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Coins, TrendingUp, Loader2, AlertCircle } from 'lucide-react';
+import { Coins, TrendingUp, Loader2, AlertCircle, ShieldCheck } from 'lucide-react';
+import api from '@/lib/api';
 import { toast } from 'sonner';
 
 const BET_TYPES = [
@@ -21,11 +22,20 @@ export default function BetSlip({ match }) {
   const [prediction, setPrediction] = useState('');
   const [amount, setAmount] = useState(100);
   const [loading, setLoading] = useState(false);
+  const [boostData, setBoostData] = useState(null);
+
+  useEffect(() => {
+    if (user && match) {
+      api.get(`/boosts/${match.id}`).then(r => setBoostData(r.data)).catch(() => {});
+    }
+  }, [user, match]);
 
   if (!match) return null;
 
   const currentOdds = BET_TYPES.find(b => b.value === betType)?.odds || 1.8;
-  const potentialWin = Math.round(amount * currentOdds);
+  const totalBoost = boostData?.total_boost || 0;
+  const boostedOdds = Math.round(currentOdds * (1 + totalBoost / 100) * 100) / 100;
+  const potentialWin = Math.round(amount * boostedOdds);
 
   const handleBet = async () => {
     if (!user) { toast.error('Login to place a prediction'); return; }
@@ -163,11 +173,39 @@ export default function BetSlip({ match }) {
         </div>
       </div>
 
+      {/* Boosts from collection */}
+      {boostData && boostData.total_boost > 0 && (
+        <div className="bg-[#39FF14]/5 border border-[#39FF14]/20 rounded-lg p-3 space-y-2" data-testid="bet-boosts">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-[#39FF14]" />
+            <span className="text-xs text-[#39FF14] font-bold uppercase tracking-wider">Player Boosts Active</span>
+            <span className="font-mono-data text-xs text-[#39FF14] ml-auto">+{boostData.total_boost}%</span>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {boostData.active_boosts?.map((b, i) => (
+              <span key={i} className="text-[10px] bg-[#39FF14]/10 text-[#39FF14] px-2 py-0.5 rounded-full font-mono-data">
+                {b.player} +{b.boost}%
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Summary */}
       <div className="bg-[#0A0A0A] border border-white/5 rounded-lg p-4 space-y-2">
         <div className="flex justify-between text-xs text-gray-400">
-          <span>Odds</span>
-          <span className="font-mono-data text-[#39FF14]">x{currentOdds}</span>
+          <span>Base Odds</span>
+          <span className="font-mono-data text-white">x{currentOdds}</span>
+        </div>
+        {totalBoost > 0 && (
+          <div className="flex justify-between text-xs text-gray-400">
+            <span>Boost</span>
+            <span className="font-mono-data text-[#39FF14]">+{totalBoost}%</span>
+          </div>
+        )}
+        <div className="flex justify-between text-xs text-gray-400">
+          <span>Effective Odds</span>
+          <span className="font-mono-data text-[#39FF14]">x{boostedOdds}</span>
         </div>
         <div className="flex justify-between text-xs text-gray-400">
           <span>Stake</span>

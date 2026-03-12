@@ -3,12 +3,15 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Zap, Trophy, BarChart3, Target, User, LogOut, Menu, X, Coins } from 'lucide-react';
-import { useState } from 'react';
+import { Zap, Trophy, BarChart3, Target, User, LogOut, Menu, X, Coins, Package, Flame, BookOpen } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import api from '@/lib/api';
 
 const NAV_ITEMS = [
   { to: '/matches', label: 'Matches', icon: BarChart3 },
   { to: '/predictions', label: 'Predictions', icon: Target },
+  { to: '/packs', label: 'Packs', icon: Package },
+  { to: '/collection', label: 'Collection', icon: BookOpen },
   { to: '/leaderboard', label: 'Leaderboard', icon: Trophy },
 ];
 
@@ -17,6 +20,13 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [streak, setStreak] = useState(0);
+
+  useEffect(() => {
+    if (user) {
+      api.get('/daily-status').then(r => setStreak(r.data.streak || 0)).catch(() => {});
+    }
+  }, [user]);
 
   return (
     <nav data-testid="navbar" className="fixed top-0 left-0 right-0 z-50 h-16 glass-card border-b border-white/5">
@@ -54,6 +64,12 @@ export default function Navbar() {
         <div className="flex items-center gap-3">
           {user ? (
             <>
+              {streak > 0 && (
+                <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm bg-[#FF0055]/10 border border-[#FF0055]/20">
+                  <Flame className="w-3.5 h-3.5 text-[#FF0055]" />
+                  <span className="font-mono-data text-xs text-[#FF0055]" data-testid="streak-badge">{streak}</span>
+                </div>
+              )}
               <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-sm bg-[#1E1E1E] border border-white/5">
                 <Coins className="w-4 h-4 text-[#FFD700]" />
                 <span className="font-mono-data text-sm text-[#FFD700]" data-testid="user-credits">
