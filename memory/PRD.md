@@ -68,3 +68,24 @@ Build a full-stack football analytics platform with: match analysis, advanced st
 3. Add Google OAuth when user provides OAuth credentials
 4. Weekly leaderboard reset logic
 5. Enhanced pitch interactivity (click-to-place events)
+
+## Phase 2 Update (March 2026)
+
+### New Features Implemented:
+- [x] **Daily Login Bonus**: 20 credits/day with streak multiplier (x1 → x1.5 at 3d → x2 at 7d → x3 at 30d)
+- [x] **Login Streak System**: Consecutive login tracking, resets on missed day
+- [x] **Gacha Pack System**: 3 pack types (Bronze 50cr/1card, Silver 150cr/2cards, Gold 300cr/3cards)
+- [x] **Weighted Rarity**: Legendary 0.5-7%, Epic 2.5-15%, Rare 12-33%, Common 45-85%
+- [x] **40 Player Roster**: 5 Legendary, 10 Epic, 14 Rare, 11 Common across 8 teams
+- [x] **Player Collection Gallery**: Filter by rarity, sort by rating/rarity/owned, set as avatar, sell duplicates
+- [x] **Team Boosts**: Collected players boost betting odds (current team = higher %, former = lower %)
+- [x] **Avatar Frames**: 6 frames purchasable with credits (Default, Bronze, Silver, Gold, Neon, Legendary)
+- [x] **Player Avatars**: Use collected players as profile avatar
+- [x] **Dashboard Enhanced**: Streak display, collection count, 6 stat cards
+- [x] **Navbar Enhanced**: Streak badge, Packs/Collection links
+
+### Next Phase:
+- Add pack opening animation improvements (card flip, glow effects)
+- Weekly leaderboard with reset
+- Trading system between users
+- Real-time notifications
