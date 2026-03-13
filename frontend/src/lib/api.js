@@ -123,4 +123,9 @@ export const equipAPI = {
   get: () => api.get('/equipped'),
 };
 
+// Dynamic Odds
+export const oddsAPI = {
+  get: (matchId) => api.get(`/odds/${matchId}`),
+};
+
 export default api;

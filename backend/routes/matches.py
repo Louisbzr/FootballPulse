@@ -175,9 +175,26 @@ async def sync_football(user=Depends(get_current_user)):
     to_date = (today + timedelta(days=14)).strftime("%Y-%m-%d")
     total_synced = 0
     total_events = 0
+    skipped = 0
     errors = []
+
+    # Build set of fixture IDs already fully enriched (has stats + lineups + finished)
+    enriched_cursor = db.matches.find(
+        {"source": "api-football", "status": "finished", "stats": {"$ne": None}, "lineups": {"$ne": None}},
+        {"_id": 0, "api_fixture_id": 1}
+    )
+    enriched_ids = set()
+    async for doc in enriched_cursor:
+        fid = doc.get("api_fixture_id")
+        if fid:
+            enriched_ids.add(fid)
+
+    # Check last sync time to avoid re-fetching league lists too often
+    cache_key = f"sync_{today.strftime('%Y-%m-%d-%H')}"
+    cached = await db.api_cache.find_one({"key": cache_key}, {"_id": 0})
+
     async with httpx.AsyncClient(timeout=20) as http_client:
-        # 1. Live matches
+        # 1. Live matches (always fetch)
         try:
             resp = await http_client.get("https://v3.football.api-sports.io/fixtures", headers={"x-apisports-key": api_key}, params={"live": "all"})
             if resp.status_code == 200:
@@ -195,23 +212,36 @@ async def sync_football(user=Depends(get_current_user)):
                             total_events += 1
         except Exception as e:
             errors.append(f"Live: {str(e)[:80]}")
-        # 2. Recent + upcoming per league
-        for league_id, league_name in LEAGUE_MAP.items():
-            matches, evts, err = await _fetch_fixtures(http_client, api_key, {"league": league_id, "season": CURRENT_SEASON, "from": from_date, "to": to_date, "timezone": "Europe/Paris"}, league_name)
-            if err:
-                errors.append(err)
-            for m in matches:
-                await db.matches.update_one({"id": m["id"]}, {"$set": m}, upsert=True)
-                total_synced += 1
-            for ev in evts:
-                await db.match_events.update_one({"match_id": ev["match_id"], "minute": ev["minute"], "player": ev["player"]}, {"$set": ev}, upsert=True)
-                total_events += 1
-        # 3. Fetch detailed data for finished without stats
+
+        # 2. Recent + upcoming per league (skip if synced this hour)
+        if not cached:
+            for league_id, league_name in LEAGUE_MAP.items():
+                matches, evts, err = await _fetch_fixtures(http_client, api_key, {"league": league_id, "season": CURRENT_SEASON, "from": from_date, "to": to_date, "timezone": "Europe/Paris"}, league_name)
+                if err:
+                    errors.append(err)
+                for m in matches:
+                    fid = m.get("api_fixture_id")
+                    if fid in enriched_ids:
+                        skipped += 1
+                        continue
+                    await db.matches.update_one({"id": m["id"]}, {"$set": m}, upsert=True)
+                    total_synced += 1
+                for ev in evts:
+                    await db.match_events.update_one({"match_id": ev["match_id"], "minute": ev["minute"], "player": ev["player"]}, {"$set": ev}, upsert=True)
+                    total_events += 1
+            await db.api_cache.update_one({"key": cache_key}, {"$set": {"key": cache_key, "ts": today.isoformat()}}, upsert=True)
+        else:
+            skipped += len(enriched_ids)
+
+        # 3. Fetch detailed data for finished without stats (skip already enriched)
         recent_cutoff = (today - timedelta(days=14)).isoformat()
-        no_stats = await db.matches.find({"source": "api-football", "status": "finished", "stats": None, "date": {"$gte": recent_cutoff}}, {"_id": 0, "api_fixture_id": 1, "league": 1}).to_list(30)
+        no_stats = await db.matches.find(
+            {"source": "api-football", "status": "finished", "$or": [{"stats": None}, {"lineups": None}], "date": {"$gte": recent_cutoff}},
+            {"_id": 0, "api_fixture_id": 1, "league": 1}
+        ).to_list(30)
         for m in no_stats:
             fid = m.get("api_fixture_id")
-            if not fid:
+            if not fid or fid in enriched_ids:
                 continue
             try:
                 resp = await http_client.get("https://v3.football.api-sports.io/fixtures", headers={"x-apisports-key": api_key}, params={"id": fid})
@@ -223,9 +253,23 @@ async def sync_football(user=Depends(get_current_user)):
                         for ev in events:
                             await db.match_events.update_one({"match_id": ev["match_id"], "minute": ev["minute"], "player": ev["player"]}, {"$set": ev}, upsert=True)
                             total_events += 1
+                        enriched_ids.add(fid)
             except Exception:
                 pass
-    return {"synced_matches": total_synced, "synced_events": total_events, "errors": errors}
+
+    # Clean old cache entries (keep last 48h)
+    old_cutoff = (today - timedelta(hours=48)).isoformat()
+    await db.api_cache.delete_many({"ts": {"$lt": old_cutoff}})
+
+    return {"synced_matches": total_synced, "synced_events": total_events, "skipped": skipped, "errors": errors}
+
+@router.get("/football/stats")
+async def get_api_stats():
+    """Show API usage stats"""
+    total_cached = await db.api_cache.count_documents({})
+    enriched = await db.matches.count_documents({"source": "api-football", "stats": {"$ne": None}, "lineups": {"$ne": None}})
+    total = await db.matches.count_documents({"source": "api-football"})
+    return {"total_matches": total, "fully_enriched": enriched, "cache_entries": total_cached}
 
 @router.get("/football/leagues")
 async def get_football_leagues():

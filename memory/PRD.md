@@ -80,9 +80,12 @@ backend/
 - Challenge: `/api/daily-challenge`, `/api/daily-challenge/predict`, `/api/daily-challenge/check`
 - Football: `/api/football/sync`, `/api/football/leagues`, `/api/football/clean-mock`
 
-## Testing
-- Iteration 3: Backend 20/20 (100%), Frontend 100%
-- Test files: /app/test_reports/iteration_3.json
+### Phase 5 - Optimisations (Mar 2026)
+- [x] **Cache API-Football** : Skip matchs déjà enrichis (stats+lineups), cache horaire pour éviter les re-fetch, endpoint /api/football/stats
+- [x] **Cotes dynamiques** : Les cotes s'ajustent en temps réel pendant les matchs live basées sur le score et le temps écoulé (ex: 3-0 à 75' → Vainqueur x1.8→x1.36, Over/Under x1.85→x1.05)
+- [x] **Endpoint /api/odds/{match_id}** : Retourne les cotes actuelles pour tous les types de paris
+- [x] Auto-refresh des cotes toutes les 30s pour les matchs live côté frontend
+- [x] Affichage visuel des baisses de cotes (barré + flèche rouge) dans le BetSlip
 
 ## Backlog
 ### P1

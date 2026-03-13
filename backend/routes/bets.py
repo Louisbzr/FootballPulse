@@ -7,6 +7,45 @@ from datetime import datetime, timezone
 
 router = APIRouter(prefix="/api")
 
+def compute_dynamic_odds(base_odds, bet_type, match):
+    """Adjust odds based on current score for live matches."""
+    if match.get("status") != "live":
+        return base_odds
+    home_score = match.get("score", {}).get("home", 0) or 0
+    away_score = match.get("score", {}).get("away", 0) or 0
+    elapsed = match.get("elapsed") or 45
+    total_goals = home_score + away_score
+    diff = home_score - away_score
+    time_factor = max(0.3, 1 - (elapsed / 90) * 0.5)
+
+    if bet_type == "winner":
+        if diff > 0:
+            # Home leading: home odds drop, away odds rise
+            return round(max(1.05, base_odds - diff * 0.35 * (1 - time_factor)), 2)
+        elif diff < 0:
+            return round(max(1.05, base_odds - abs(diff) * 0.35 * (1 - time_factor)), 2)
+        else:
+            return round(base_odds * time_factor + base_odds * 0.3, 2)
+    elif bet_type == "exact_score":
+        return round(max(1.5, base_odds * time_factor), 2)
+    elif bet_type == "first_scorer":
+        if total_goals > 0:
+            return round(max(1.1, base_odds * 0.3), 2)
+        return round(base_odds * time_factor, 2)
+    elif bet_type == "total_goals":
+        goal_adj = max(0.4, 1 - total_goals * 0.15)
+        return round(max(1.1, base_odds * goal_adj * time_factor), 2)
+    elif bet_type == "both_teams_score":
+        if home_score > 0 and away_score > 0:
+            return round(max(1.05, base_odds * 0.4), 2)
+        elif total_goals > 0:
+            return round(max(1.1, base_odds * 0.7 * time_factor), 2)
+        return round(base_odds * time_factor, 2)
+    elif bet_type == "over_under":
+        goal_adj = max(0.35, 1 - total_goals * 0.2)
+        return round(max(1.05, base_odds * goal_adj), 2)
+    return round(max(1.05, base_odds * time_factor), 2)
+
 async def get_equipped_boost(user, match):
     """Calculate boost from the single equipped player"""
     equipped_id = user.get("equipped_player_id")
@@ -38,7 +77,8 @@ async def place_bet(data: BetCreate, user=Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="Match not found")
     if match["status"] == "finished":
         raise HTTPException(status_code=400, detail="Match already finished")
-    odds = ODDS_MAP.get(data.bet_type, 1.8)
+    base_odds = ODDS_MAP.get(data.bet_type, 1.8)
+    odds = compute_dynamic_odds(base_odds, data.bet_type, match)
     total_boost, active_boosts = await get_equipped_boost(fresh_user, match)
     boosted_odds = round(odds * (1 + total_boost / 100), 2)
     bet = {
@@ -78,7 +118,6 @@ async def resolve_bets(match_id: str):
     total_goals = home_score + away_score
     # Get scorers from events
     events = await db.match_events.find({"match_id": match_id, "type": {"$in": ["goal", "penalty"]}}, {"_id": 0}).to_list(50)
-    scorers_set = set(e.get("player", "").lower() for e in events)
     first_scorer = events[0].get("player", "").lower() if events else ""
     pending_bets = await db.bets.find({"match_id": match_id, "status": "pending"}).to_list(1000)
     resolved = 0
@@ -117,7 +156,7 @@ async def resolve_bets(match_id: str):
         resolved += 1
     return {"resolved": resolved}
 
-# ─── BOOSTS ───
+# ─── BOOSTS & DYNAMIC ODDS ───
 @router.get("/boosts/{match_id}")
 async def get_boosts(match_id: str, user=Depends(get_current_user)):
     match = await db.matches.find_one({"id": match_id}, {"_id": 0})
@@ -125,3 +164,20 @@ async def get_boosts(match_id: str, user=Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="Match not found")
     total_boost, active = await get_equipped_boost(user, match)
     return {"total_boost": total_boost, "active_boosts": active}
+
+@router.get("/odds/{match_id}")
+async def get_dynamic_odds(match_id: str):
+    """Return current dynamic odds for all bet types on a match."""
+    match = await db.matches.find_one({"id": match_id}, {"_id": 0})
+    if not match:
+        raise HTTPException(status_code=404, detail="Match not found")
+    odds = {}
+    for bt, base in ODDS_MAP.items():
+        odds[bt] = {"base": base, "current": compute_dynamic_odds(base, bt, match)}
+    return {
+        "match_id": match_id,
+        "status": match.get("status"),
+        "score": match.get("score"),
+        "elapsed": match.get("elapsed"),
+        "odds": odds,
+    }
