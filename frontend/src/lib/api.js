@@ -108,6 +108,7 @@ export const challengeAPI = {
 export const footballAPI = {
   sync: () => api.post('/football/sync'),
   leagues: () => api.get('/football/leagues'),
+  cleanMock: () => api.post('/football/clean-mock'),
 };
 
 // Weekly Leaderboard

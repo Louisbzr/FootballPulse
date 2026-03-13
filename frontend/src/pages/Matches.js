@@ -14,7 +14,7 @@ const FILTERS = [
   { value: 'finished', label: 'Finished' },
 ];
 
-const LEAGUES = ['All', 'La Liga', 'Premier League', 'Champions League', 'Serie A', 'Bundesliga'];
+const LEAGUES = ['All', 'Ligue 1', 'Premier League', 'La Liga', 'Champions League', 'Serie A', 'Bundesliga'];
 
 export default function Matches() {
   const { user } = useAuth();

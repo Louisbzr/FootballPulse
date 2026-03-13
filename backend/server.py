@@ -306,12 +306,16 @@ async def update_profile(data: UserUpdate, user=Depends(get_current_user)):
 # ─── MATCHES ───
 @api_router.get("/matches")
 async def get_matches(status: Optional[str] = None, league: Optional[str] = None):
-    query = {}
+    query = {"source": "api-football"}  # Only show real API data
     if status:
         query["status"] = status
     if league:
         query["league"] = league
-    matches = await db.matches.find(query, {"_id": 0}).sort("date", -1).to_list(100)
+    # Sort: live first, then upcoming by date asc, then finished by date desc
+    matches = await db.matches.find(query, {"_id": 0}).sort("date", -1).to_list(300)
+    # Custom sort: live > upcoming > finished
+    priority = {"live": 0, "upcoming": 1, "finished": 2, "postponed": 3, "cancelled": 4, "suspended": 4}
+    matches.sort(key=lambda m: (priority.get(m.get("status", ""), 5), m["date"] if m.get("status") == "upcoming" else ""))
     return matches
 
 @api_router.get("/matches/{match_id}")
@@ -666,33 +670,45 @@ async def get_boosts(match_id: str, user=Depends(get_current_user)):
     return {"total_boost": total_boost, "active_boosts": active}
 
 # ─── API-FOOTBALL SYNC ───
-LEAGUE_MAP = {39: "Premier League", 140: "La Liga", 2: "Champions League", 135: "Serie A", 78: "Bundesliga"}
+LEAGUE_MAP = {39: "Premier League", 140: "La Liga", 2: "Champions League", 135: "Serie A", 78: "Bundesliga", 61: "Ligue 1"}
+
+# Current season for 2025-2026
+CURRENT_SEASON = 2025
 
 def transform_api_fixture(fixture, league_name):
     fx = fixture.get("fixture", {})
     teams_data = fixture.get("teams", {})
     goals = fixture.get("goals", {})
     status_short = fx.get("status", {}).get("short", "NS")
+    elapsed = fx.get("status", {}).get("elapsed")
     status_map = {"FT": "finished", "AET": "finished", "PEN": "finished", "NS": "upcoming",
                   "TBD": "upcoming", "1H": "live", "2H": "live", "HT": "live", "ET": "live",
-                  "PST": "upcoming", "CANC": "finished", "ABD": "finished", "SUSP": "upcoming"}
+                  "BT": "live", "P": "live", "INT": "live",
+                  "PST": "postponed", "CANC": "cancelled", "ABD": "cancelled", "SUSP": "suspended",
+                  "AWD": "finished", "WO": "finished"}
     home = teams_data.get("home", {})
     away = teams_data.get("away", {})
     events_raw = fixture.get("events") or []
-    type_map = {"Goal": "goal", "Card": "yellow_card", "subst": "substitution", "Var": "shot_on_target"}
+    type_map = {"Goal": "goal", "Card": "yellow_card", "subst": "substitution", "Var": "var"}
     events = []
     for ev in events_raw:
         etype = ev.get("type", "")
         detail = ev.get("detail", "")
-        mapped = type_map.get(etype, "foul")
+        mapped = type_map.get(etype, "other")
         if etype == "Card" and "Red" in detail:
             mapped = "red_card"
+        if etype == "Goal" and "Own" in detail:
+            mapped = "own_goal"
+        if etype == "Goal" and "Penalty" in detail:
+            mapped = "penalty"
         events.append({
             "id": str(uuid.uuid4()),
             "match_id": f"api_{fx.get('id')}",
             "minute": ev.get("time", {}).get("elapsed", 0) or 0,
+            "extra": ev.get("time", {}).get("extra"),
             "type": mapped,
             "player": ev.get("player", {}).get("name", "Unknown"),
+            "assist": ev.get("assist", {}).get("name"),
             "team": "home" if ev.get("team", {}).get("id") == home.get("id") else "away",
             "position": {"x": random.randint(20, 95), "y": random.randint(10, 90)},
             "description": detail or etype,
@@ -704,9 +720,17 @@ def transform_api_fixture(fixture, league_name):
             for s in team_stats:
                 if s.get("type") == name:
                     v = s.get("value")
+                    if v is None:
+                        return 0
                     if isinstance(v, str) and "%" in v:
-                        return int(v.replace("%", ""))
-                    return int(v) if v else 0
+                        try:
+                            return int(v.replace("%", ""))
+                        except ValueError:
+                            return 0
+                    try:
+                        return int(v)
+                    except (ValueError, TypeError):
+                        return 0
             return 0
         h_stats = stats_raw[0].get("statistics", [])
         a_stats = stats_raw[1].get("statistics", [])
@@ -720,7 +744,8 @@ def transform_api_fixture(fixture, league_name):
             "yellow_cards": {"home": get_stat(h_stats, "Yellow Cards"), "away": get_stat(a_stats, "Yellow Cards")},
             "red_cards": {"home": get_stat(h_stats, "Red Cards"), "away": get_stat(a_stats, "Red Cards")},
         }
-    return {
+    mapped_status = status_map.get(status_short, "upcoming")
+    match_doc = {
         "id": f"api_{fx.get('id')}",
         "api_fixture_id": fx.get("id"),
         "home_team": {"id": f"api_team_{home.get('id')}", "name": home.get("name", ""), "short": (home.get("name", "") or "")[:3].upper(), "logo": home.get("logo", ""), "color": "#333"},
@@ -729,64 +754,136 @@ def transform_api_fixture(fixture, league_name):
         "stadium": (fx.get("venue") or {}).get("name", "Unknown"),
         "league": league_name,
         "score": {"home": goals.get("home") or 0, "away": goals.get("away") or 0},
-        "status": status_map.get(status_short, "upcoming"),
+        "status": mapped_status,
+        "status_short": status_short,
+        "elapsed": elapsed,
         "stats": stats,
         "source": "api-football",
-    }, events
+    }
+    return match_doc, events
+
+async def _fetch_fixtures(http_client, api_key, params, league_name):
+    """Fetch fixtures from API-Football and return (match_docs, events_list)"""
+    matches = []
+    all_events = []
+    try:
+        resp = await http_client.get(
+            "https://v3.football.api-sports.io/fixtures",
+            headers={"x-apisports-key": api_key},
+            params=params,
+        )
+        if resp.status_code != 200:
+            return matches, all_events, f"{league_name}: HTTP {resp.status_code}"
+        data = resp.json()
+        api_errors = data.get("errors", {})
+        if api_errors:
+            return matches, all_events, f"{league_name}: {str(api_errors)[:100]}"
+        for fixture in data.get("response", []):
+            match_doc, events = transform_api_fixture(fixture, league_name)
+            matches.append(match_doc)
+            all_events.extend(events)
+    except Exception as e:
+        return matches, all_events, f"{league_name}: {str(e)[:80]}"
+    return matches, all_events, None
 
 @api_router.post("/football/sync")
 async def sync_football(user=Depends(get_current_user)):
     api_key = os.environ.get("FOOTBALL_API_KEY")
     if not api_key:
         raise HTTPException(status_code=400, detail="No API key configured")
-    # Free plan: seasons 2022-2024. 2024 season covers Aug 2024 - May 2025
+    today = datetime.now(timezone.utc)
+    # Recent past (14 days) + upcoming (14 days) to get both finished and upcoming
+    from_date = (today - timedelta(days=14)).strftime("%Y-%m-%d")
+    to_date = (today + timedelta(days=14)).strftime("%Y-%m-%d")
     total_synced = 0
     total_events = 0
     errors = []
-    # Fetch recent finished + upcoming from 2024 season
-    date_ranges = [
-        ("2025-04-01", "2025-05-31"),
-        ("2025-02-01", "2025-03-31"),
-        ("2025-01-01", "2025-01-31"),
-        ("2024-12-01", "2024-12-31"),
-    ]
-    async with httpx.AsyncClient(timeout=15) as http_client:
-        for league_id, league_name in LEAGUE_MAP.items():
-            for from_d, to_d in date_ranges:
-                try:
-                    resp = await http_client.get(
-                        "https://v3.football.api-sports.io/fixtures",
-                        headers={"x-apisports-key": api_key},
-                        params={"league": league_id, "season": 2024, "from": from_d, "to": to_d},
-                    )
-                    if resp.status_code != 200:
-                        errors.append(f"{league_name}: HTTP {resp.status_code}")
-                        continue
-                    data = resp.json()
-                    api_errors = data.get("errors", {})
-                    if api_errors:
-                        errors.append(f"{league_name}: {str(api_errors)[:100]}")
-                        continue
-                    fixtures = data.get("response", [])
-                    for fixture in fixtures:
+    async with httpx.AsyncClient(timeout=20) as http_client:
+        # 1. Fetch live matches across all our leagues
+        try:
+            resp = await http_client.get(
+                "https://v3.football.api-sports.io/fixtures",
+                headers={"x-apisports-key": api_key},
+                params={"live": "all"},
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                our_league_ids = set(LEAGUE_MAP.keys())
+                for fixture in data.get("response", []):
+                    league_id = fixture.get("league", {}).get("id")
+                    if league_id in our_league_ids:
+                        league_name = LEAGUE_MAP[league_id]
                         match_doc, events = transform_api_fixture(fixture, league_name)
                         await db.matches.update_one({"id": match_doc["id"]}, {"$set": match_doc}, upsert=True)
                         total_synced += 1
-                        if events:
-                            for ev in events:
-                                await db.match_events.update_one({"match_id": ev["match_id"], "minute": ev["minute"], "player": ev["player"]}, {"$set": ev}, upsert=True)
-                                total_events += 1
-                except Exception as e:
-                    errors.append(f"{league_name}: {str(e)[:100]}")
-                if total_synced >= 80:
-                    break
-            if total_synced >= 80:
-                break
+                        for ev in events:
+                            await db.match_events.update_one(
+                                {"match_id": ev["match_id"], "minute": ev["minute"], "player": ev["player"]},
+                                {"$set": ev}, upsert=True
+                            )
+                            total_events += 1
+        except Exception as e:
+            errors.append(f"Live: {str(e)[:80]}")
+        # 2. Fetch recent + upcoming per league
+        for league_id, league_name in LEAGUE_MAP.items():
+            matches, evts, err = await _fetch_fixtures(
+                http_client, api_key,
+                {"league": league_id, "season": CURRENT_SEASON, "from": from_date, "to": to_date, "timezone": "Europe/Paris"},
+                league_name
+            )
+            if err:
+                errors.append(err)
+            for m in matches:
+                await db.matches.update_one({"id": m["id"]}, {"$set": m}, upsert=True)
+                total_synced += 1
+            for ev in evts:
+                await db.match_events.update_one(
+                    {"match_id": ev["match_id"], "minute": ev["minute"], "player": ev["player"]},
+                    {"$set": ev}, upsert=True
+                )
+                total_events += 1
+        # 3. For finished matches without stats, fetch detailed data (last 14 days, to get full stats)
+        recent_cutoff = (today - timedelta(days=14)).isoformat()
+        no_stats = await db.matches.find(
+            {"source": "api-football", "status": "finished", "stats": None, "date": {"$gte": recent_cutoff}},
+            {"_id": 0, "api_fixture_id": 1, "league": 1}
+        ).to_list(30)
+        for m in no_stats:
+            fid = m.get("api_fixture_id")
+            if not fid:
+                continue
+            try:
+                resp = await http_client.get(
+                    "https://v3.football.api-sports.io/fixtures",
+                    headers={"x-apisports-key": api_key},
+                    params={"id": fid},
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    for fixture in data.get("response", []):
+                        match_doc, events = transform_api_fixture(fixture, m.get("league", ""))
+                        await db.matches.update_one({"id": match_doc["id"]}, {"$set": match_doc}, upsert=True)
+                        for ev in events:
+                            await db.match_events.update_one(
+                                {"match_id": ev["match_id"], "minute": ev["minute"], "player": ev["player"]},
+                                {"$set": ev}, upsert=True
+                            )
+                            total_events += 1
+            except Exception:
+                pass
     return {"synced_matches": total_synced, "synced_events": total_events, "errors": errors}
 
 @api_router.get("/football/leagues")
 async def get_football_leagues():
     return [{"id": k, "name": v} for k, v in LEAGUE_MAP.items()]
+
+# ─── Clean old mock data ───
+@api_router.post("/football/clean-mock")
+async def clean_mock_data(user=Depends(get_current_user)):
+    """Remove seeded mock matches and keep only API-Football data"""
+    result = await db.matches.delete_many({"source": {"$ne": "api-football"}})
+    events_result = await db.match_events.delete_many({"match_id": {"$not": {"$regex": "^api_"}}})
+    return {"deleted_matches": result.deleted_count, "deleted_events": events_result.deleted_count}
 
 # ─── TRADING MARKETPLACE ───
 class TradeCreate(BaseModel):
