@@ -3,6 +3,7 @@ import "@/App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider, useTheme } from "@/context/ThemeContext";
+import { NotificationProvider } from "@/context/NotificationContext";
 import { Toaster } from "@/components/ui/sonner";
 import Navbar from "@/components/Navbar";
 import DailyLogin from "@/components/DailyLogin";
@@ -19,6 +20,7 @@ import PackOpening from "@/pages/PackOpening";
 import Collection from "@/pages/Collection";
 import Trading from "@/pages/Trading";
 import DailyChallenge from "@/pages/DailyChallenge";
+import ForgotPassword from "@/pages/ForgotPassword";
 import { seedAPI } from "@/lib/api";
 import api from "@/lib/api";
 
@@ -40,6 +42,7 @@ function AppInner() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/matches" element={<Matches />} />
             <Route path="/matches/:id" element={<MatchDetail />} />
             <Route path="/predictions" element={<Predictions />} />
@@ -62,7 +65,9 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <AppInner />
+        <NotificationProvider>
+          <AppInner />
+        </NotificationProvider>
       </AuthProvider>
     </ThemeProvider>
   );

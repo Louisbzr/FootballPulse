@@ -74,6 +74,9 @@ export default function Login() {
             Don't have an account?{' '}
             <Link to="/register" className="hover:underline" style={{ color: 'var(--accent)' }} data-testid="login-register-link">Sign up</Link>
           </p>
+          <p className="text-center text-sm mt-2">
+            <Link to="/forgot-password" className="hover:underline" style={{ color: 'var(--text-muted)' }} data-testid="forgot-password-link">Forgot password?</Link>
+          </p>
         </CardContent>
       </Card>
     </div>

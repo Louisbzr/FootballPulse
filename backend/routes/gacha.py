@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from config import db, get_current_user, optional_user, add_xp, PACKS_CONFIG, FRAMES, SELL_PRICES, get_streak_multiplier
 from models import TradeCreate
 from data.players import PLAYERS_DATA
+from socket_manager import send_notification
 import uuid
 import random
 from datetime import datetime, timezone, timedelta
@@ -12,8 +13,8 @@ def roll_rarity(pack_type):
     probs = PACKS_CONFIG[pack_type]["probs"]
     r = random.random() * 100
     cumulative = 0
-    for rarity in ["legendary", "epic", "rare", "common"]:
-        cumulative += probs[rarity]
+    for rarity in ["icon", "legendary", "epic", "rare", "common"]:
+        cumulative += probs.get(rarity, 0)
         if r < cumulative:
             return rarity
     return "common"

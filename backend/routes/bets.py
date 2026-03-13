@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from config import db, get_current_user, add_xp, check_badges, ODDS_MAP
 from models import BetCreate
 from data.players import PLAYERS_DATA
+from socket_manager import send_notification
 import uuid
 from datetime import datetime, timezone
 
@@ -151,8 +152,25 @@ async def resolve_bets(match_id: str):
             await db.users.update_one({"id": bet_doc["user_id"]}, {"$inc": {"virtual_credits": payout}})
             await add_xp(bet_doc["user_id"], 30)
             await check_badges(bet_doc["user_id"])
+            # Send notification for bet won
+            try:
+                await send_notification(bet_doc["user_id"], "bet_won", {
+                    "match": bet_doc["match_label"],
+                    "amount_won": payout,
+                    "bet_type": bet_doc["bet_type"],
+                    "odds": bet_doc["odds"],
+                })
+            except Exception:
+                pass
         else:
             await db.bets.update_one({"id": bet_doc["id"]}, {"$set": {"status": "lost"}})
+            try:
+                await send_notification(bet_doc["user_id"], "bet_lost", {
+                    "match": bet_doc["match_label"],
+                    "amount_lost": bet_doc["amount"],
+                })
+            except Exception:
+                pass
         resolved += 1
     return {"resolved": resolved}
 

@@ -15,6 +15,17 @@ class UserUpdate(BaseModel):
     favorite_team: Optional[str] = None
     avatar: Optional[str] = None
 
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
 class BetCreate(BaseModel):
     match_id: str
     bet_type: str

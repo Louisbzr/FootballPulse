@@ -7,6 +7,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Zap, Trophy, BarChart3, Target, User, LogOut, Menu, X, Coins, Package, Flame, BookOpen, ArrowRightLeft, Gift, Sun, Moon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
+import NotificationBell from './NotificationBell';
 
 const NAV_ITEMS = [
   { to: '/matches', label: 'Matches', icon: BarChart3 },
@@ -90,6 +91,7 @@ export default function Navbar() {
                   {user.virtual_credits?.toLocaleString()}
                 </span>
               </div>
+              <NotificationBell />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 hover:opacity-80 transition-opacity" data-testid="user-menu-trigger">
