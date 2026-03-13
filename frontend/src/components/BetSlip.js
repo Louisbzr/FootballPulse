@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { betsAPI } from '@/lib/api';
+import { betsAPI, equipAPI } from '@/lib/api';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,9 +11,12 @@ import api from '@/lib/api';
 import { toast } from 'sonner';
 
 const BET_TYPES = [
-  { value: 'winner', label: 'Match Winner', odds: 1.8 },
-  { value: 'exact_score', label: 'Exact Score', odds: 5.0 },
-  { value: 'total_goals', label: 'Total Goals', odds: 2.5 },
+  { value: 'winner', label: 'Vainqueur', odds: 1.8, icon: '\u26BD' },
+  { value: 'exact_score', label: 'Score exact', odds: 5.0, icon: '\uD83C\uDFAF' },
+  { value: 'first_scorer', label: '1er buteur', odds: 4.5, icon: '\u2B50' },
+  { value: 'total_goals', label: 'Total buts', odds: 2.5, icon: '#' },
+  { value: 'both_teams_score', label: 'Les 2 marquent', odds: 1.9, icon: '\u2194' },
+  { value: 'over_under', label: 'Over/Under', odds: 1.85, icon: '\u2195' },
 ];
 
 export default function BetSlip({ match }) {
@@ -38,18 +41,18 @@ export default function BetSlip({ match }) {
   const potentialWin = Math.round(amount * boostedOdds);
 
   const handleBet = async () => {
-    if (!user) { toast.error('Login to place a prediction'); return; }
-    if (!prediction) { toast.error('Select a prediction'); return; }
-    if (amount <= 0) { toast.error('Enter a valid amount'); return; }
+    if (!user) { toast.error('Connectez-vous pour parier'); return; }
+    if (!prediction) { toast.error('Choisissez une prédiction'); return; }
+    if (amount <= 0) { toast.error('Montant invalide'); return; }
     setLoading(true);
     try {
       await betsAPI.place({ match_id: match.id, bet_type: betType, prediction, amount: parseInt(amount) });
-      toast.success(`Prediction placed! Potential win: ${potentialWin} credits`);
+      toast.success(`Pari placé ! Gain potentiel: ${potentialWin} crédits`);
       refreshUser();
       setPrediction('');
       setAmount(100);
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Failed to place prediction');
+      toast.error(err.response?.data?.detail || 'Erreur');
     } finally {
       setLoading(false);
     }
@@ -59,7 +62,7 @@ export default function BetSlip({ match }) {
     return (
       <Card className="bg-[#121212] border-white/5 p-6 text-center" data-testid="bet-slip-closed">
         <AlertCircle className="w-8 h-8 text-gray-500 mx-auto mb-3" />
-        <p className="text-gray-400">This match is finished. Predictions are closed.</p>
+        <p className="text-gray-400">Match terminé. Les paris sont fermés.</p>
       </Card>
     );
   }
@@ -67,7 +70,7 @@ export default function BetSlip({ match }) {
   return (
     <Card className="bg-[#121212] border-white/5 p-5 space-y-5" data-testid="bet-slip">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-white uppercase tracking-wider" style={{ fontFamily: 'Barlow Condensed, sans-serif' }}>Place Prediction</h3>
+        <h3 className="text-sm font-bold text-white uppercase tracking-wider" style={{ fontFamily: 'Barlow Condensed, sans-serif' }}>Placer un pari</h3>
         {user && (
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-sm bg-[#1E1E1E] border border-white/5">
             <Coins className="w-3.5 h-3.5 text-[#FFD700]" />
@@ -76,109 +79,103 @@ export default function BetSlip({ match }) {
         )}
       </div>
 
-      {/* Bet type */}
+      {/* Bet type grid */}
       <div className="space-y-2">
-        <label className="text-xs text-gray-400 uppercase tracking-wider">Prediction Type</label>
+        <label className="text-xs text-gray-400 uppercase tracking-wider">Type de pari</label>
         <div className="grid grid-cols-3 gap-2">
           {BET_TYPES.map(bt => (
             <button
               key={bt.value}
               onClick={() => { setBetType(bt.value); setPrediction(''); }}
-              className={`p-3 rounded-lg border text-center transition-all ${
-                betType === bt.value
-                  ? 'border-[#39FF14]/30 bg-[#39FF14]/5'
-                  : 'border-white/5 bg-[#0A0A0A] hover:border-white/10'
+              className={`p-2.5 rounded-lg border text-center transition-all ${
+                betType === bt.value ? 'border-[#39FF14]/30 bg-[#39FF14]/5' : 'border-white/5 bg-[#0A0A0A] hover:border-white/10'
               }`}
               data-testid={`bet-type-${bt.value}`}
             >
-              <p className="text-xs text-gray-400 mb-1">{bt.label}</p>
+              <p className="text-xs text-gray-400 truncate">{bt.label}</p>
               <p className="font-mono-data text-sm text-[#39FF14]">x{bt.odds}</p>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Prediction value */}
+      {/* Prediction value based on bet type */}
       <div className="space-y-2">
-        <label className="text-xs text-gray-400 uppercase tracking-wider">Your Prediction</label>
+        <label className="text-xs text-gray-400 uppercase tracking-wider">Votre prédiction</label>
         {betType === 'winner' ? (
           <div className="grid grid-cols-3 gap-2">
             {[
               { value: 'home', label: match.home_team?.short },
-              { value: 'draw', label: 'Draw' },
+              { value: 'draw', label: 'Nul' },
               { value: 'away', label: match.away_team?.short },
             ].map(opt => (
-              <button
-                key={opt.value}
-                onClick={() => setPrediction(opt.value)}
-                className={`p-3 rounded-lg border text-center text-sm font-medium transition-all ${
-                  prediction === opt.value
-                    ? 'border-[#39FF14]/30 bg-[#39FF14]/10 text-[#39FF14]'
-                    : 'border-white/5 bg-[#0A0A0A] text-gray-400 hover:border-white/10'
-                }`}
-                data-testid={`pred-${opt.value}`}
-              >
-                {opt.label}
-              </button>
+              <button key={opt.value} onClick={() => setPrediction(opt.value)}
+                className={`p-3 rounded-lg border text-center text-sm font-medium transition-all ${prediction === opt.value ? 'border-[#39FF14]/30 bg-[#39FF14]/10 text-[#39FF14]' : 'border-white/5 bg-[#0A0A0A] text-gray-400 hover:border-white/10'}`}
+                data-testid={`pred-${opt.value}`}>{opt.label}</button>
             ))}
           </div>
         ) : betType === 'exact_score' ? (
-          <Input
-            placeholder="e.g., 2-1"
-            value={prediction}
-            onChange={e => setPrediction(e.target.value)}
-            className="bg-[#0A0A0A] border-white/10 text-white font-mono-data"
-            data-testid="pred-exact-score"
-          />
-        ) : (
+          <Input placeholder="ex: 2-1" value={prediction} onChange={e => setPrediction(e.target.value)}
+            className="bg-[#0A0A0A] border-white/10 text-white font-mono-data" data-testid="pred-exact-score" />
+        ) : betType === 'first_scorer' ? (
+          <Input placeholder="Nom du joueur (ex: Mbappé)" value={prediction} onChange={e => setPrediction(e.target.value)}
+            className="bg-[#0A0A0A] border-white/10 text-white" data-testid="pred-first-scorer" />
+        ) : betType === 'total_goals' ? (
           <Select value={prediction} onValueChange={setPrediction}>
             <SelectTrigger className="bg-[#0A0A0A] border-white/10 text-white" data-testid="pred-total-goals">
-              <SelectValue placeholder="Select total goals" />
+              <SelectValue placeholder="Total de buts" />
             </SelectTrigger>
             <SelectContent className="bg-[#121212] border-white/10">
               {['0', '1', '2', '3', '4', '5', '6+'].map(g => (
-                <SelectItem key={g} value={g} className="text-white hover:bg-white/5 focus:bg-white/5">{g} goals</SelectItem>
+                <SelectItem key={g} value={g} className="text-white hover:bg-white/5 focus:bg-white/5">{g} buts</SelectItem>
               ))}
             </SelectContent>
           </Select>
-        )}
+        ) : betType === 'both_teams_score' ? (
+          <div className="grid grid-cols-2 gap-2">
+            {[{ value: 'yes', label: 'Oui' }, { value: 'no', label: 'Non' }].map(opt => (
+              <button key={opt.value} onClick={() => setPrediction(opt.value)}
+                className={`p-3 rounded-lg border text-center text-sm font-medium transition-all ${prediction === opt.value ? 'border-[#39FF14]/30 bg-[#39FF14]/10 text-[#39FF14]' : 'border-white/5 bg-[#0A0A0A] text-gray-400 hover:border-white/10'}`}
+                data-testid={`pred-bts-${opt.value}`}>{opt.label}</button>
+            ))}
+          </div>
+        ) : betType === 'over_under' ? (
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { value: 'over_1.5', label: 'Over 1.5' }, { value: 'under_1.5', label: 'Under 1.5' },
+              { value: 'over_2.5', label: 'Over 2.5' }, { value: 'under_2.5', label: 'Under 2.5' },
+              { value: 'over_3.5', label: 'Over 3.5' }, { value: 'under_3.5', label: 'Under 3.5' },
+            ].map(opt => (
+              <button key={opt.value} onClick={() => setPrediction(opt.value)}
+                className={`p-2 rounded-lg border text-center text-xs font-medium transition-all ${prediction === opt.value ? 'border-[#39FF14]/30 bg-[#39FF14]/10 text-[#39FF14]' : 'border-white/5 bg-[#0A0A0A] text-gray-400 hover:border-white/10'}`}
+                data-testid={`pred-ou-${opt.value}`}>{opt.label}</button>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       {/* Amount */}
       <div className="space-y-2">
-        <label className="text-xs text-gray-400 uppercase tracking-wider">Amount</label>
+        <label className="text-xs text-gray-400 uppercase tracking-wider">Mise</label>
         <div className="flex gap-2">
-          <Input
-            type="number"
-            value={amount}
-            onChange={e => setAmount(Math.max(0, parseInt(e.target.value) || 0))}
-            className="bg-[#0A0A0A] border-white/10 text-white font-mono-data"
-            min="1"
-            data-testid="bet-amount-input"
-          />
+          <Input type="number" value={amount} onChange={e => setAmount(Math.max(0, parseInt(e.target.value) || 0))}
+            className="bg-[#0A0A0A] border-white/10 text-white font-mono-data" min="1" data-testid="bet-amount-input" />
           <div className="flex gap-1">
             {[50, 100, 250, 500].map(v => (
-              <Button
-                key={v}
-                size="sm"
-                variant="outline"
-                onClick={() => setAmount(v)}
+              <Button key={v} size="sm" variant="outline" onClick={() => setAmount(v)}
                 className={`border-white/10 text-xs ${amount === v ? 'bg-[#39FF14]/10 text-[#39FF14] border-[#39FF14]/30' : 'text-gray-400'}`}
-                data-testid={`amount-${v}`}
-              >
-                {v}
-              </Button>
+                data-testid={`amount-${v}`}>{v}</Button>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Boosts from collection */}
+      {/* Equipped player boost */}
       {boostData && boostData.total_boost > 0 && (
         <div className="bg-[#39FF14]/5 border border-[#39FF14]/20 rounded-lg p-3 space-y-2" data-testid="bet-boosts">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-[#39FF14]" />
-            <span className="text-xs text-[#39FF14] font-bold uppercase tracking-wider">Player Boosts Active</span>
+            <span className="text-xs text-[#39FF14] font-bold uppercase tracking-wider">Boost joueur équipé</span>
             <span className="font-mono-data text-xs text-[#39FF14] ml-auto">+{boostData.total_boost}%</span>
           </div>
           <div className="flex flex-wrap gap-1">
@@ -194,7 +191,7 @@ export default function BetSlip({ match }) {
       {/* Summary */}
       <div className="bg-[#0A0A0A] border border-white/5 rounded-lg p-4 space-y-2">
         <div className="flex justify-between text-xs text-gray-400">
-          <span>Base Odds</span>
+          <span>Cote de base</span>
           <span className="font-mono-data text-white">x{currentOdds}</span>
         </div>
         {totalBoost > 0 && (
@@ -204,27 +201,24 @@ export default function BetSlip({ match }) {
           </div>
         )}
         <div className="flex justify-between text-xs text-gray-400">
-          <span>Effective Odds</span>
+          <span>Cote effective</span>
           <span className="font-mono-data text-[#39FF14]">x{boostedOdds}</span>
         </div>
         <div className="flex justify-between text-xs text-gray-400">
-          <span>Stake</span>
+          <span>Mise</span>
           <span className="font-mono-data text-white">{amount}</span>
         </div>
         <div className="border-t border-white/5 pt-2 flex justify-between">
-          <span className="text-xs text-gray-400">Potential Win</span>
+          <span className="text-xs text-gray-400">Gain potentiel</span>
           <span className="font-mono-data text-sm font-bold text-[#39FF14]" data-testid="potential-win">{potentialWin}</span>
         </div>
       </div>
 
-      <Button
-        onClick={handleBet}
-        disabled={loading || !prediction || amount <= 0}
+      <Button onClick={handleBet} disabled={loading || !prediction || amount <= 0}
         className="w-full bg-[#39FF14] text-black font-bold uppercase tracking-wider hover:bg-[#39FF14]/90 hover:shadow-[0_0_20px_rgba(57,255,20,0.3)] transition-all rounded-sm py-5"
-        data-testid="place-bet-btn"
-      >
+        data-testid="place-bet-btn">
         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
-          <span className="flex items-center gap-2"><TrendingUp className="w-4 h-4" /> Place Prediction</span>
+          <span className="flex items-center gap-2"><TrendingUp className="w-4 h-4" /> Placer le pari</span>
         )}
       </Button>
     </Card>

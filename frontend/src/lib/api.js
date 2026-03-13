@@ -116,4 +116,11 @@ export const weeklyLeaderboardAPI = {
   get: () => api.get('/leaderboard/weekly'),
 };
 
+// Equip Player
+export const equipAPI = {
+  equip: (playerId) => api.post(`/equip/${playerId}`),
+  unequip: () => api.post('/unequip'),
+  get: () => api.get('/equipped'),
+};
+
 export default api;
