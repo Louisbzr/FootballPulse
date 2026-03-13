@@ -35,9 +35,9 @@ BADGES_INFO = {
 }
 
 PACKS_CONFIG = {
-    "bronze": {"cost": 50, "cards": 1, "probs": {"legendary": 0.5, "epic": 2.5, "rare": 12, "common": 85}},
-    "silver": {"cost": 150, "cards": 2, "probs": {"legendary": 2, "epic": 8, "rare": 25, "common": 65}},
-    "gold": {"cost": 300, "cards": 3, "probs": {"legendary": 7, "epic": 15, "rare": 33, "common": 45}},
+    "bronze": {"cost": 50, "cards": 1, "probs": {"icon": 0, "legendary": 0.5, "epic": 2.5, "rare": 12, "common": 85}},
+    "silver": {"cost": 150, "cards": 2, "probs": {"icon": 0.1, "legendary": 2, "epic": 8, "rare": 25, "common": 64.9}},
+    "gold": {"cost": 300, "cards": 3, "probs": {"icon": 0.5, "legendary": 7, "epic": 15, "rare": 33, "common": 44.5}},
 }
 
 FRAMES = [
@@ -49,7 +49,7 @@ FRAMES = [
     {"id": "legendary", "name": "Legendary Fire", "cost": 1500},
 ]
 
-SELL_PRICES = {"common": 10, "rare": 30, "epic": 75, "legendary": 250}
+SELL_PRICES = {"common": 10, "rare": 30, "epic": 75, "legendary": 250, "icon": 1000}
 
 ODDS_MAP = {
     "winner": 1.8,
