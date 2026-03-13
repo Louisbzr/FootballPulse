@@ -16,6 +16,8 @@ import Dashboard from "@/pages/Dashboard";
 import Profile from "@/pages/Profile";
 import PackOpening from "@/pages/PackOpening";
 import Collection from "@/pages/Collection";
+import Trading from "@/pages/Trading";
+import DailyChallenge from "@/pages/DailyChallenge";
 import { seedAPI } from "@/lib/api";
 import api from "@/lib/api";
 
@@ -44,6 +46,8 @@ function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/packs" element={<PackOpening />} />
               <Route path="/collection" element={<Collection />} />
+              <Route path="/trading" element={<Trading />} />
+              <Route path="/challenge" element={<DailyChallenge />} />
             </Routes>
           </main>
         </BrowserRouter>

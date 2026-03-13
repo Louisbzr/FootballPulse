@@ -3,7 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Zap, Trophy, BarChart3, Target, User, LogOut, Menu, X, Coins, Package, Flame, BookOpen } from 'lucide-react';
+import { Zap, Trophy, BarChart3, Target, User, LogOut, Menu, X, Coins, Package, Flame, BookOpen, ArrowRightLeft, Gift } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 
@@ -11,7 +11,8 @@ const NAV_ITEMS = [
   { to: '/matches', label: 'Matches', icon: BarChart3 },
   { to: '/predictions', label: 'Predictions', icon: Target },
   { to: '/packs', label: 'Packs', icon: Package },
-  { to: '/collection', label: 'Collection', icon: BookOpen },
+  { to: '/trading', label: 'Trading', icon: ArrowRightLeft },
+  { to: '/challenge', label: 'Challenge', icon: Gift },
   { to: '/leaderboard', label: 'Leaderboard', icon: Trophy },
 ];
 
@@ -96,6 +97,9 @@ export default function Navbar() {
                   </DropdownMenuItem>
                   <DropdownMenuItem className="cursor-pointer hover:bg-white/5 focus:bg-white/5" onClick={() => navigate('/profile')} data-testid="nav-profile-link">
                     <User className="w-4 h-4 mr-2" /> Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer hover:bg-white/5 focus:bg-white/5" onClick={() => navigate('/collection')} data-testid="nav-collection-link">
+                    <BookOpen className="w-4 h-4 mr-2" /> Collection
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-white/10" />
                   <DropdownMenuItem className="cursor-pointer hover:bg-white/5 focus:bg-white/5 text-[#FF0055]" onClick={() => { logout(); navigate('/'); }} data-testid="nav-logout">

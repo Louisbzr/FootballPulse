@@ -1,26 +1,31 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { matchesAPI } from '@/lib/api';
+import { matchesAPI, footballAPI } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 import MatchCard from '@/components/MatchCard';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 
 const FILTERS = [
   { value: '', label: 'All' },
   { value: 'upcoming', label: 'Upcoming' },
+  { value: 'live', label: 'Live' },
   { value: 'finished', label: 'Finished' },
 ];
 
-const LEAGUES = ['All', 'La Liga', 'Premier League', 'Champions League', 'Serie A'];
+const LEAGUES = ['All', 'La Liga', 'Premier League', 'Champions League', 'Serie A', 'Bundesliga'];
 
 export default function Matches() {
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || '');
   const [leagueFilter, setLeagueFilter] = useState('All');
 
-  useEffect(() => {
+  const loadMatches = () => {
     setLoading(true);
     const params = {};
     if (statusFilter) params.status = statusFilter;
@@ -29,14 +34,51 @@ export default function Matches() {
       setMatches(r.data);
       setLoading(false);
     }).catch(() => setLoading(false));
-  }, [statusFilter, leagueFilter]);
+  };
+
+  useEffect(() => { loadMatches(); }, [statusFilter, leagueFilter]);
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const res = await footballAPI.sync();
+      const d = res.data;
+      toast.success(`Synchronisé ! ${d.synced_matches} matchs, ${d.synced_events} événements`);
+      if (d.errors?.length > 0) {
+        toast.warning(`${d.errors.length} erreur(s): ${d.errors[0]}`);
+      }
+      loadMatches();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Erreur de synchronisation');
+    }
+    setSyncing(false);
+  };
 
   return (
     <div className="min-h-screen max-w-7xl mx-auto px-4 py-8" data-testid="matches-page">
-      <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase text-white mb-2" style={{ fontFamily: 'Barlow Condensed, sans-serif' }}>
-        Matches
-      </h1>
-      <p className="text-gray-500 text-sm mb-8">Browse and analyze football matches</p>
+      <div className="flex items-start justify-between mb-2">
+        <div>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase text-white" style={{ fontFamily: 'Barlow Condensed, sans-serif' }}>
+            Matches
+          </h1>
+          <p className="text-gray-500 text-sm">Browse and analyze football matches</p>
+        </div>
+        {user && (
+          <Button
+            onClick={handleSync}
+            disabled={syncing}
+            variant="outline"
+            className="border-[#00F0FF]/30 text-[#00F0FF] hover:bg-[#00F0FF]/10 rounded-sm gap-2"
+            data-testid="sync-matches-btn"
+          >
+            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+            {syncing ? 'Syncing...' : 'Sync Live'}
+          </Button>
+        )}
+      </div>
+      <p className="text-gray-600 text-xs mb-8">
+        {matches.length} match{matches.length > 1 ? 'es' : ''} found
+      </p>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-8" data-testid="match-filters">
@@ -54,14 +96,14 @@ export default function Matches() {
             </Button>
           ))}
         </div>
-        <div className="flex gap-1 p-1 rounded-lg bg-[#121212] border border-white/5">
+        <div className="flex gap-1 p-1 rounded-lg bg-[#121212] border border-white/5 overflow-x-auto">
           {LEAGUES.map(l => (
             <Button
               key={l}
               size="sm"
               variant="ghost"
               onClick={() => setLeagueFilter(l)}
-              className={`text-xs rounded-md ${leagueFilter === l ? 'bg-[#00F0FF]/10 text-[#00F0FF]' : 'text-gray-400 hover:text-white'}`}
+              className={`text-xs rounded-md whitespace-nowrap ${leagueFilter === l ? 'bg-[#00F0FF]/10 text-[#00F0FF]' : 'text-gray-400 hover:text-white'}`}
               data-testid={`league-${l.replace(/\s/g, '-').toLowerCase()}`}
             >
               {l}
@@ -82,6 +124,7 @@ export default function Matches() {
       ) : (
         <div className="text-center py-20">
           <p className="text-gray-500">No matches found</p>
+          {user && <p className="text-gray-600 text-xs mt-1">Essayez de synchroniser les matchs en direct</p>}
         </div>
       )}
     </div>

@@ -77,4 +77,42 @@ export const badgesAPI = {
   list: () => api.get('/badges'),
 };
 
+// Packs
+export const packsAPI = {
+  list: () => api.get('/packs'),
+  open: (type) => api.post(`/packs/open/${type}`),
+};
+
+// Collection
+export const collectionAPI = {
+  list: () => api.get('/collection'),
+  sell: (playerId) => api.post(`/collection/sell/${playerId}`),
+};
+
+// Trades
+export const tradesAPI = {
+  list: () => api.get('/trades'),
+  create: (data) => api.post('/trades', data),
+  buy: (tradeId) => api.post(`/trades/${tradeId}/buy`),
+  cancel: (tradeId) => api.post(`/trades/${tradeId}/cancel`),
+};
+
+// Daily Challenge
+export const challengeAPI = {
+  get: () => api.get('/daily-challenge'),
+  predict: (prediction) => api.post('/daily-challenge/predict', { prediction }),
+  check: () => api.post('/daily-challenge/check'),
+};
+
+// Football Sync
+export const footballAPI = {
+  sync: () => api.post('/football/sync'),
+  leagues: () => api.get('/football/leagues'),
+};
+
+// Weekly Leaderboard
+export const weeklyLeaderboardAPI = {
+  get: () => api.get('/leaderboard/weekly'),
+};
+
 export default api;

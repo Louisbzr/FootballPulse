@@ -12,6 +12,7 @@ from datetime import datetime, timezone, timedelta
 from passlib.context import CryptContext
 import jwt
 import random
+import httpx
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -663,6 +664,287 @@ async def get_boosts(match_id: str, user=Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="Match not found")
     total_boost, active = await calculate_user_boosts(user["id"], match)
     return {"total_boost": total_boost, "active_boosts": active}
+
+# ─── API-FOOTBALL SYNC ───
+LEAGUE_MAP = {39: "Premier League", 140: "La Liga", 2: "Champions League", 135: "Serie A", 78: "Bundesliga"}
+
+def transform_api_fixture(fixture, league_name):
+    fx = fixture.get("fixture", {})
+    teams_data = fixture.get("teams", {})
+    goals = fixture.get("goals", {})
+    status_short = fx.get("status", {}).get("short", "NS")
+    status_map = {"FT": "finished", "AET": "finished", "PEN": "finished", "NS": "upcoming",
+                  "TBD": "upcoming", "1H": "live", "2H": "live", "HT": "live", "ET": "live",
+                  "PST": "upcoming", "CANC": "finished", "ABD": "finished", "SUSP": "upcoming"}
+    home = teams_data.get("home", {})
+    away = teams_data.get("away", {})
+    events_raw = fixture.get("events") or []
+    type_map = {"Goal": "goal", "Card": "yellow_card", "subst": "substitution", "Var": "shot_on_target"}
+    events = []
+    for ev in events_raw:
+        etype = ev.get("type", "")
+        detail = ev.get("detail", "")
+        mapped = type_map.get(etype, "foul")
+        if etype == "Card" and "Red" in detail:
+            mapped = "red_card"
+        events.append({
+            "id": str(uuid.uuid4()),
+            "match_id": f"api_{fx.get('id')}",
+            "minute": ev.get("time", {}).get("elapsed", 0) or 0,
+            "type": mapped,
+            "player": ev.get("player", {}).get("name", "Unknown"),
+            "team": "home" if ev.get("team", {}).get("id") == home.get("id") else "away",
+            "position": {"x": random.randint(20, 95), "y": random.randint(10, 90)},
+            "description": detail or etype,
+        })
+    stats_raw = fixture.get("statistics") or []
+    stats = None
+    if len(stats_raw) == 2:
+        def get_stat(team_stats, name):
+            for s in team_stats:
+                if s.get("type") == name:
+                    v = s.get("value")
+                    if isinstance(v, str) and "%" in v:
+                        return int(v.replace("%", ""))
+                    return int(v) if v else 0
+            return 0
+        h_stats = stats_raw[0].get("statistics", [])
+        a_stats = stats_raw[1].get("statistics", [])
+        stats = {
+            "possession": {"home": get_stat(h_stats, "Ball Possession"), "away": get_stat(a_stats, "Ball Possession")},
+            "shots": {"home": get_stat(h_stats, "Total Shots"), "away": get_stat(a_stats, "Total Shots")},
+            "shots_on_target": {"home": get_stat(h_stats, "Shots on Goal"), "away": get_stat(a_stats, "Shots on Goal")},
+            "passes": {"home": get_stat(h_stats, "Total passes"), "away": get_stat(a_stats, "Total passes")},
+            "fouls": {"home": get_stat(h_stats, "Fouls"), "away": get_stat(a_stats, "Fouls")},
+            "corners": {"home": get_stat(h_stats, "Corner Kicks"), "away": get_stat(a_stats, "Corner Kicks")},
+            "yellow_cards": {"home": get_stat(h_stats, "Yellow Cards"), "away": get_stat(a_stats, "Yellow Cards")},
+            "red_cards": {"home": get_stat(h_stats, "Red Cards"), "away": get_stat(a_stats, "Red Cards")},
+        }
+    return {
+        "id": f"api_{fx.get('id')}",
+        "api_fixture_id": fx.get("id"),
+        "home_team": {"id": f"api_team_{home.get('id')}", "name": home.get("name", ""), "short": (home.get("name", "") or "")[:3].upper(), "logo": home.get("logo", ""), "color": "#333"},
+        "away_team": {"id": f"api_team_{away.get('id')}", "name": away.get("name", ""), "short": (away.get("name", "") or "")[:3].upper(), "logo": away.get("logo", ""), "color": "#333"},
+        "date": fx.get("date", ""),
+        "stadium": (fx.get("venue") or {}).get("name", "Unknown"),
+        "league": league_name,
+        "score": {"home": goals.get("home") or 0, "away": goals.get("away") or 0},
+        "status": status_map.get(status_short, "upcoming"),
+        "stats": stats,
+        "source": "api-football",
+    }, events
+
+@api_router.post("/football/sync")
+async def sync_football(user=Depends(get_current_user)):
+    api_key = os.environ.get("FOOTBALL_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=400, detail="No API key configured")
+    # Free plan: seasons 2022-2024. 2024 season covers Aug 2024 - May 2025
+    total_synced = 0
+    total_events = 0
+    errors = []
+    # Fetch recent finished + upcoming from 2024 season
+    date_ranges = [
+        ("2025-04-01", "2025-05-31"),
+        ("2025-02-01", "2025-03-31"),
+        ("2025-01-01", "2025-01-31"),
+        ("2024-12-01", "2024-12-31"),
+    ]
+    async with httpx.AsyncClient(timeout=15) as http_client:
+        for league_id, league_name in LEAGUE_MAP.items():
+            for from_d, to_d in date_ranges:
+                try:
+                    resp = await http_client.get(
+                        "https://v3.football.api-sports.io/fixtures",
+                        headers={"x-apisports-key": api_key},
+                        params={"league": league_id, "season": 2024, "from": from_d, "to": to_d},
+                    )
+                    if resp.status_code != 200:
+                        errors.append(f"{league_name}: HTTP {resp.status_code}")
+                        continue
+                    data = resp.json()
+                    api_errors = data.get("errors", {})
+                    if api_errors:
+                        errors.append(f"{league_name}: {str(api_errors)[:100]}")
+                        continue
+                    fixtures = data.get("response", [])
+                    for fixture in fixtures:
+                        match_doc, events = transform_api_fixture(fixture, league_name)
+                        await db.matches.update_one({"id": match_doc["id"]}, {"$set": match_doc}, upsert=True)
+                        total_synced += 1
+                        if events:
+                            for ev in events:
+                                await db.match_events.update_one({"match_id": ev["match_id"], "minute": ev["minute"], "player": ev["player"]}, {"$set": ev}, upsert=True)
+                                total_events += 1
+                except Exception as e:
+                    errors.append(f"{league_name}: {str(e)[:100]}")
+                if total_synced >= 80:
+                    break
+            if total_synced >= 80:
+                break
+    return {"synced_matches": total_synced, "synced_events": total_events, "errors": errors}
+
+@api_router.get("/football/leagues")
+async def get_football_leagues():
+    return [{"id": k, "name": v} for k, v in LEAGUE_MAP.items()]
+
+# ─── TRADING MARKETPLACE ───
+class TradeCreate(BaseModel):
+    player_id: str
+    asking_price: int
+
+@api_router.post("/trades")
+async def create_trade(data: TradeCreate, user=Depends(get_current_user)):
+    owned = await db.user_players.count_documents({"user_id": user["id"], "player_id": data.player_id})
+    if owned < 2:
+        raise HTTPException(status_code=400, detail="Need at least 2 copies to trade (keep 1)")
+    player = next((p for p in PLAYERS_DATA if p["id"] == data.player_id), None)
+    if not player:
+        raise HTTPException(status_code=404, detail="Player not found")
+    if data.asking_price < 10 or data.asking_price > 5000:
+        raise HTTPException(status_code=400, detail="Price must be 10-5000")
+    trade = {
+        "id": str(uuid.uuid4()),
+        "seller_id": user["id"],
+        "seller_name": user["username"],
+        "player_id": data.player_id,
+        "player_name": player["name"],
+        "player_rarity": player["rarity"],
+        "player_rating": player["rating"],
+        "asking_price": data.asking_price,
+        "status": "open",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    # Remove one copy from seller's collection
+    entry = await db.user_players.find_one({"user_id": user["id"], "player_id": data.player_id})
+    await db.user_players.delete_one({"_id": entry["_id"]})
+    await db.trades.insert_one({**trade})
+    return {k: v for k, v in trade.items() if k != "_id"}
+
+@api_router.get("/trades")
+async def list_trades(user=Depends(optional_user)):
+    trades = await db.trades.find({"status": "open"}, {"_id": 0}).sort("created_at", -1).to_list(50)
+    return trades
+
+@api_router.post("/trades/{trade_id}/buy")
+async def buy_trade(trade_id: str, user=Depends(get_current_user)):
+    trade = await db.trades.find_one({"id": trade_id, "status": "open"})
+    if not trade:
+        raise HTTPException(status_code=404, detail="Trade not found or closed")
+    if trade["seller_id"] == user["id"]:
+        raise HTTPException(status_code=400, detail="Cannot buy your own trade")
+    fresh_user = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    if fresh_user["virtual_credits"] < trade["asking_price"]:
+        raise HTTPException(status_code=400, detail="Insufficient credits")
+    # Transfer credits
+    await db.users.update_one({"id": user["id"]}, {"$inc": {"virtual_credits": -trade["asking_price"]}})
+    await db.users.update_one({"id": trade["seller_id"]}, {"$inc": {"virtual_credits": trade["asking_price"]}})
+    # Give player to buyer
+    await db.user_players.insert_one({"id": str(uuid.uuid4()), "user_id": user["id"], "player_id": trade["player_id"], "obtained_at": datetime.now(timezone.utc).isoformat(), "source": "trade"})
+    await db.trades.update_one({"id": trade_id}, {"$set": {"status": "sold", "buyer_id": user["id"], "buyer_name": user["username"]}})
+    await add_xp(user["id"], 5)
+    return {"message": f"Purchased {trade['player_name']} for {trade['asking_price']} credits"}
+
+@api_router.post("/trades/{trade_id}/cancel")
+async def cancel_trade(trade_id: str, user=Depends(get_current_user)):
+    trade = await db.trades.find_one({"id": trade_id, "seller_id": user["id"], "status": "open"})
+    if not trade:
+        raise HTTPException(status_code=404, detail="Trade not found")
+    # Return player
+    await db.user_players.insert_one({"id": str(uuid.uuid4()), "user_id": user["id"], "player_id": trade["player_id"], "obtained_at": datetime.now(timezone.utc).isoformat(), "source": "trade_cancelled"})
+    await db.trades.update_one({"id": trade_id}, {"$set": {"status": "cancelled"}})
+    return {"message": "Trade cancelled, player returned"}
+
+# ─── WEEKLY LEADERBOARD ───
+@api_router.get("/leaderboard/weekly")
+async def get_weekly_leaderboard():
+    week_start = datetime.now(timezone.utc) - timedelta(days=datetime.now(timezone.utc).weekday())
+    week_start = week_start.replace(hour=0, minute=0, second=0, microsecond=0)
+    week_str = week_start.isoformat()
+    bets_this_week = await db.bets.find({"created_at": {"$gte": week_str}, "status": {"$in": ["won", "lost"]}}, {"_id": 0}).to_list(5000)
+    user_stats = {}
+    for b in bets_this_week:
+        uid = b["user_id"]
+        if uid not in user_stats:
+            user_stats[uid] = {"wins": 0, "total": 0, "profit": 0, "username": b.get("username", "")}
+        user_stats[uid]["total"] += 1
+        if b["status"] == "won":
+            user_stats[uid]["wins"] += 1
+            user_stats[uid]["profit"] += b.get("potential_win", 0) - b["amount"]
+        else:
+            user_stats[uid]["profit"] -= b["amount"]
+    leaderboard = []
+    for uid, s in user_stats.items():
+        user_doc = await db.users.find_one({"id": uid}, {"_id": 0, "password_hash": 0})
+        if user_doc:
+            leaderboard.append({
+                "rank": 0, "id": uid, "username": user_doc.get("username", ""),
+                "avatar": user_doc.get("avatar", ""), "level": user_doc.get("level", "Rookie"),
+                "wins": s["wins"], "total_bets": s["total"],
+                "win_rate": round(s["wins"] / s["total"] * 100, 1) if s["total"] > 0 else 0,
+                "profit": s["profit"],
+            })
+    leaderboard.sort(key=lambda x: (-x["wins"], -x["profit"]))
+    for i, l in enumerate(leaderboard):
+        l["rank"] = i + 1
+    return leaderboard
+
+# ─── DAILY CHALLENGE ───
+@api_router.get("/daily-challenge")
+async def get_daily_challenge(user=Depends(get_current_user)):
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    challenge = await db.daily_challenges.find_one({"date": today, "user_id": user["id"]}, {"_id": 0})
+    if challenge:
+        return challenge
+    upcoming = await db.matches.find({"status": "upcoming"}, {"_id": 0}).to_list(20)
+    if not upcoming:
+        return {"active": False, "message": "No upcoming matches for challenge"}
+    random.seed(today + user["id"])
+    match = random.choice(upcoming)
+    challenge = {
+        "id": str(uuid.uuid4()), "user_id": user["id"], "date": today,
+        "match_id": match["id"], "match_label": f"{match['home_team']['short']} vs {match['away_team']['short']}",
+        "match": match, "status": "active", "prediction": None, "result": None, "active": True,
+    }
+    await db.daily_challenges.insert_one({**challenge})
+    return {k: v for k, v in challenge.items() if k != "_id"}
+
+class ChallengePredict(BaseModel):
+    prediction: str
+
+@api_router.post("/daily-challenge/predict")
+async def submit_challenge_prediction(data: ChallengePredict, user=Depends(get_current_user)):
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    challenge = await db.daily_challenges.find_one({"date": today, "user_id": user["id"], "status": "active"})
+    if not challenge:
+        raise HTTPException(status_code=400, detail="No active challenge")
+    if challenge.get("prediction"):
+        raise HTTPException(status_code=400, detail="Already predicted")
+    await db.daily_challenges.update_one({"_id": challenge["_id"]}, {"$set": {"prediction": data.prediction, "status": "predicted"}})
+    return {"message": "Prediction submitted!", "prediction": data.prediction}
+
+@api_router.post("/daily-challenge/check")
+async def check_daily_challenge(user=Depends(get_current_user)):
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    challenge = await db.daily_challenges.find_one({"date": today, "user_id": user["id"], "status": "predicted"})
+    if not challenge:
+        return {"message": "No challenge to check"}
+    match = await db.matches.find_one({"id": challenge["match_id"]}, {"_id": 0})
+    if not match or match["status"] != "finished":
+        return {"message": "Match not finished yet", "status": "waiting"}
+    home_score = match["score"]["home"]
+    away_score = match["score"]["away"]
+    actual = "home" if home_score > away_score else ("away" if away_score > home_score else "draw")
+    won = challenge["prediction"] == actual
+    await db.daily_challenges.update_one({"_id": challenge["_id"]}, {"$set": {"status": "completed", "result": "won" if won else "lost"}})
+    if won:
+        rarity = roll_rarity("bronze")
+        player = pick_player(rarity)
+        entry = {"id": str(uuid.uuid4()), "user_id": user["id"], "player_id": player["id"], "obtained_at": datetime.now(timezone.utc).isoformat(), "source": "daily_challenge"}
+        await db.user_players.insert_one({**entry})
+        await add_xp(user["id"], 15)
+        return {"result": "won", "message": "Challenge won! Free player earned!", "player": player}
+    return {"result": "lost", "message": "Challenge lost. Try again tomorrow!"}
 
 # ─── SEED ───
 @api_router.post("/seed")
