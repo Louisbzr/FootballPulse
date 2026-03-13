@@ -12,9 +12,10 @@ const RARITY_STYLES = {
   rare: { bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400', label: 'Rare', color: '#3B82F6' },
   epic: { bg: 'bg-purple-500/10', border: 'border-purple-500/30', text: 'text-purple-400', label: 'Epic', color: '#A855F7' },
   legendary: { bg: 'bg-[#FFD700]/10', border: 'border-[#FFD700]/30', text: 'text-[#FFD700]', label: 'Legendary', color: '#FFD700' },
+  icon: { bg: 'bg-[#FF8C00]/10', border: 'border-[#FF8C00]/40', text: 'text-[#FF8C00]', label: 'ICON', color: '#FF8C00' },
 };
 
-const SELL_PRICES = { common: 10, rare: 30, epic: 75, legendary: 250 };
+const SELL_PRICES = { common: 10, rare: 30, epic: 75, legendary: 250, icon: 1000 };
 
 export default function Collection() {
   const { user, refreshUser } = useAuth();
@@ -79,14 +80,14 @@ export default function Collection() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
-      <Loader2 className="w-6 h-6 text-[#39FF14] animate-spin" />
+      <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--accent)' }} />
     </div>
   );
 
   if (!user) return (
     <div className="min-h-screen max-w-5xl mx-auto px-4 py-8 text-center">
-      <BookOpen className="w-12 h-12 text-[#39FF14] mx-auto mb-4" />
-      <h1 className="text-3xl font-black text-white uppercase">Connectez-vous</h1>
+      <BookOpen className="w-12 h-12 mx-auto mb-4" style={{ color: 'var(--accent)' }} />
+      <h1 className="text-3xl font-black uppercase" style={{ color: 'var(--text-primary)' }}>Connectez-vous</h1>
     </div>
   );
 
@@ -98,31 +99,31 @@ export default function Collection() {
     <div className="min-h-screen max-w-6xl mx-auto px-4 py-8" data-testid="collection-page">
       <div className="flex items-start justify-between mb-2">
         <div>
-          <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase text-white" style={{ fontFamily: 'Barlow Condensed, sans-serif' }}>
-            <BookOpen className="w-8 h-8 inline mr-3 text-[#39FF14]" />
+          <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
+            <BookOpen className="w-8 h-8 inline mr-3" style={{ color: 'var(--accent)' }} />
             Collection
           </h1>
-          <p className="text-gray-500 text-sm">{owned.length} / {collection.length} joueurs collectés</p>
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{owned.length} / {collection.length} joueurs collectés</p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#121212] border border-white/5">
-          <Coins className="w-4 h-4 text-[#FFD700]" />
-          <span className="font-mono-data text-lg text-[#FFD700]">{user.virtual_credits?.toLocaleString()}</span>
+        <div className="flex items-center gap-2 px-4 py-2 rounded-lg border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
+          <Coins className="w-4 h-4" style={{ color: 'var(--accent-gold)' }} />
+          <span className="font-mono-data text-lg" style={{ color: 'var(--accent-gold)' }}>{user.virtual_credits?.toLocaleString()}</span>
         </div>
       </div>
 
       {/* Equipped Player Banner */}
       {equippedPlayer && (
-        <Card className="bg-gradient-to-r from-[#39FF14]/5 via-transparent to-[#39FF14]/5 border-[#39FF14]/20 p-4 mb-6 flex items-center gap-4" data-testid="equipped-banner">
-          <div className="w-12 h-12 rounded-full border-2 border-[#39FF14] bg-black/40 flex items-center justify-center overflow-hidden shrink-0">
+        <Card className="border p-4 mb-6 flex items-center gap-4" style={{ background: 'color-mix(in srgb, var(--accent) 5%, var(--bg-card))', borderColor: 'color-mix(in srgb, var(--accent) 20%, transparent)' }} data-testid="equipped-banner">
+          <div className="w-12 h-12 rounded-full border-2 flex items-center justify-center overflow-hidden shrink-0" style={{ borderColor: 'var(--accent)', background: 'rgba(0,0,0,0.2)' }}>
             <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${equippedPlayer.name?.replace(/\s/g, '')}`} alt="" className="w-10 h-10" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-[#39FF14]" />
-              <span className="text-xs text-[#39FF14] font-bold uppercase tracking-wider">Joueur équipé</span>
+              <ShieldCheck className="w-4 h-4" style={{ color: 'var(--accent)' }} />
+              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--accent)' }}>Joueur équipé</span>
             </div>
-            <p className="text-white font-bold text-sm truncate">{equippedPlayer.name}</p>
-            <p className="text-gray-500 text-xs">
+            <p className="font-bold text-sm truncate" style={{ color: 'var(--text-primary)' }}>{equippedPlayer.name}</p>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
               Boost: {Object.values(equippedPlayer.teams || {}).map(b => `+${b}%`).join(', ') || 'Aucun'}
             </p>
           </div>
@@ -134,13 +135,14 @@ export default function Collection() {
       )}
 
       {/* Filters */}
-      <div className="flex gap-1 p-1 rounded-lg bg-[#121212] border border-white/5 mb-6 w-fit" data-testid="collection-filters">
+      <div className="flex gap-1 p-1 rounded-lg border mb-6 w-fit" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }} data-testid="collection-filters">
         {[
           { value: 'owned', label: `Owned (${owned.length})` },
           { value: 'all', label: `All (${collection.length})` },
         ].map(f => (
           <Button key={f.value} size="sm" variant="ghost" onClick={() => setFilter(f.value)}
-            className={`text-xs rounded-md ${filter === f.value ? 'bg-[#39FF14]/10 text-[#39FF14]' : 'text-gray-400 hover:text-white'}`}
+            className="text-xs rounded-md"
+            style={{ color: filter === f.value ? 'var(--accent)' : 'var(--text-secondary)', background: filter === f.value ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent' }}
             data-testid={`filter-${f.value}`}>{f.label}</Button>
         ))}
       </div>
@@ -153,11 +155,11 @@ export default function Collection() {
           const canSell = p.owned && p.count >= 2;
           return (
             <Card key={p.id} className={`${style.border} border overflow-hidden transition-all group ${
-              p.owned ? 'bg-[#121212]' : 'bg-[#0A0A0A] opacity-40'
-            } ${isEquipped ? 'ring-1 ring-[#39FF14]/50' : ''}`} data-testid={`player-card-${p.id}`}>
+              p.owned ? '' : 'opacity-40'
+            } ${isEquipped ? 'ring-1' : ''}`} style={{ background: p.owned ? 'var(--bg-card)' : 'var(--bg-input)', ringColor: isEquipped ? 'var(--accent)' : undefined }} data-testid={`player-card-${p.id}`}>
               <div className="p-3 text-center relative">
                 {isEquipped && (
-                  <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-[#39FF14] flex items-center justify-center">
+                  <div className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: 'var(--accent)' }}>
                     <ShieldCheck className="w-3 h-3 text-black" />
                   </div>
                 )}
@@ -166,26 +168,28 @@ export default function Collection() {
                   <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${p.name?.replace(/\s/g, '')}`} alt="" className="w-11 h-11" />
                 </div>
                 <Badge className={`${style.bg} ${style.text} text-[9px] mb-1`}>{style.label}</Badge>
-                <p className="text-white text-xs font-bold truncate">{p.name}</p>
-                <p className="text-gray-600 text-[10px]">{p.pos} - {p.nat}</p>
+                <p className="text-xs font-bold truncate" style={{ color: 'var(--text-primary)' }}>{p.name}</p>
+                <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{p.pos} - {p.nat}</p>
+                {p.variant && <p className="text-[10px] mt-0.5 truncate" style={{ color: style.color }}>{p.variant}</p>}
                 <div className="flex items-center justify-center gap-1 mt-1">
                   <Star className="w-3 h-3" style={{ color: style.color }} />
-                  <span className="font-mono-data text-sm text-white">{p.rating}</span>
+                  <span className="font-mono-data text-sm" style={{ color: 'var(--text-primary)' }}>{p.rating}</span>
                 </div>
-                {p.owned && <p className="text-[10px] text-gray-500 mt-1">x{p.count}</p>}
-                {p.current_team && <p className="text-[10px] text-gray-600 mt-0.5 truncate">{p.current_team}</p>}
+                {p.owned && <p className="text-[10px] mt-1" style={{ color: 'var(--text-muted)' }}>x{p.count}</p>}
+                {p.current_team && <p className="text-[10px] mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{p.current_team}</p>}
 
                 {/* Action buttons */}
                 {p.owned && (
                   <div className="mt-2 space-y-1.5">
                     {!isEquipped ? (
                       <Button size="sm" onClick={() => handleEquip(p.id)} disabled={submitting}
-                        className="w-full bg-[#39FF14]/10 text-[#39FF14] border border-[#39FF14]/20 hover:bg-[#39FF14]/20 text-[10px] py-1 h-7 rounded-sm"
+                        className="w-full text-[10px] py-1 h-7 rounded-sm border"
+                        style={{ background: 'color-mix(in srgb, var(--accent) 10%, transparent)', color: 'var(--accent)', borderColor: 'color-mix(in srgb, var(--accent) 20%, transparent)' }}
                         data-testid={`equip-${p.id}`}>
                         <ShieldCheck className="w-3 h-3 mr-1" /> Équiper
                       </Button>
                     ) : (
-                      <Badge className="bg-[#39FF14]/10 text-[#39FF14] border-[#39FF14]/20 text-[10px] w-full justify-center py-1">
+                      <Badge className="text-[10px] w-full justify-center py-1" style={{ background: 'color-mix(in srgb, var(--accent) 10%, transparent)', color: 'var(--accent)' }}>
                         Équipé
                       </Badge>
                     )}

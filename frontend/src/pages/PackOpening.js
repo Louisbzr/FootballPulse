@@ -14,6 +14,7 @@ const RARITY_STYLES = {
   rare: { bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400', glow: 'shadow-[0_0_20px_rgba(59,130,246,0.4)]', label: 'Rare', color: '#3B82F6' },
   epic: { bg: 'bg-purple-500/10', border: 'border-purple-500/30', text: 'text-purple-400', glow: 'shadow-[0_0_25px_rgba(168,85,247,0.5)]', label: 'Epic', color: '#A855F7' },
   legendary: { bg: 'bg-[#FFD700]/10', border: 'border-[#FFD700]/30', text: 'text-[#FFD700]', glow: 'shadow-[0_0_40px_rgba(255,215,0,0.6)]', label: 'Legendary', color: '#FFD700' },
+  icon: { bg: 'bg-[#FF8C00]/10', border: 'border-[#FF8C00]/40', text: 'text-[#FF8C00]', glow: 'shadow-[0_0_50px_rgba(255,140,0,0.8)]', label: 'ICON', color: '#FF8C00' },
 };
 
 const PACK_INFO = {
@@ -57,8 +58,8 @@ function PlayerRevealCard({ player, index, total, onDone }) {
             : phase === 'glow' ? `radial-gradient(circle, ${style.color}25 0%, #0A0A0A 60%)` : '#121212',
         }}
       >
-        {/* Sparkle particles for legendary/epic */}
-        {(player.rarity === 'legendary' || player.rarity === 'epic') && phase === 'reveal' && (
+        {/* Sparkle particles for icon/legendary/epic */}
+        {(player.rarity === 'icon' || player.rarity === 'legendary' || player.rarity === 'epic') && phase === 'reveal' && (
           <>
             <div className="absolute top-2 left-3 w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: style.color, animationDelay: '0.1s' }} />
             <div className="absolute top-4 right-4 w-1 h-1 rounded-full animate-pulse" style={{ backgroundColor: style.color, animationDelay: '0.3s' }} />
@@ -168,15 +169,15 @@ export default function PackOpening() {
     <div className="min-h-screen max-w-5xl mx-auto px-4 py-8" data-testid="pack-opening-page">
       <div className="flex items-start justify-between mb-8">
         <div>
-          <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase text-white" style={{ fontFamily: 'Barlow Condensed, sans-serif' }}>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
             Pack Store
           </h1>
-          <p className="text-gray-500 text-sm mt-1">Open packs to collect players and boost your predictions</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Open packs to collect players and boost your predictions</p>
         </div>
         {user && (
-          <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#121212] border border-white/5">
-            <Coins className="w-4 h-4 text-[#FFD700]" />
-            <span className="font-mono-data text-lg text-[#FFD700]" data-testid="pack-credits">{user.virtual_credits?.toLocaleString()}</span>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-lg border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
+            <Coins className="w-4 h-4" style={{ color: 'var(--accent-gold)' }} />
+            <span className="font-mono-data text-lg" style={{ color: 'var(--accent-gold)' }} data-testid="pack-credits">{user.virtual_credits?.toLocaleString()}</span>
           </div>
         )}
       </div>
@@ -190,10 +191,14 @@ export default function PackOpening() {
           return (
             <Card
               key={type}
-              className={`bg-[#121212] border-2 overflow-hidden transition-all duration-300 group
+              className={`border-2 overflow-hidden transition-all duration-300 group
                 ${isOpening && packPhase === 'shaking' ? 'animate-[shake_0.15s_ease-in-out_infinite]' : ''}
-                ${canAfford && !opening ? 'border-white/10 hover:border-[#39FF14]/30 hover:shadow-[0_0_30px_rgba(57,255,20,0.1)] cursor-pointer' : 'border-white/5'}
+                ${canAfford && !opening ? 'hover:shadow-lg cursor-pointer' : ''}
                 ${!canAfford && !isOpening ? 'opacity-60' : ''}`}
+              style={{
+                background: 'var(--bg-card)',
+                borderColor: canAfford && !opening ? 'var(--border-hover)' : 'var(--border-default)',
+              }}
               onClick={() => canAfford && !opening && openPack(type)}
               data-testid={`pack-${type}`}
             >
@@ -214,17 +219,17 @@ export default function PackOpening() {
                     <div className="absolute inset-0 rounded-xl" style={{ background: `radial-gradient(circle, ${info.color}30 0%, transparent 70%)` }} />
                   )}
                 </div>
-                <h3 className="text-lg font-bold text-white uppercase tracking-wider mb-1" style={{ fontFamily: 'Barlow Condensed, sans-serif' }}>
+                <h3 className="text-lg font-bold uppercase tracking-wider mb-1" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
                   {info.name}
                 </h3>
-                <p className="text-xs text-gray-500 mb-3">{info.desc}</p>
+                <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>{info.desc}</p>
                 {/* Probabilities */}
                 {pack && (
                   <div className="grid grid-cols-4 gap-1 mb-4">
                     {Object.entries(pack.probs).map(([rarity, pct]) => (
                       <div key={rarity} className="text-center">
                         <p className={`text-[10px] ${RARITY_STYLES[rarity].text}`}>{RARITY_STYLES[rarity].label}</p>
-                        <p className="font-mono-data text-[10px] text-gray-500">{pct}%</p>
+                        <p className="font-mono-data text-[10px]" style={{ color: 'var(--text-muted)' }}>{pct}%</p>
                       </div>
                     ))}
                   </div>
@@ -242,20 +247,20 @@ export default function PackOpening() {
 
       {/* Quick Links */}
       <div className="flex gap-3 mb-8">
-        <Button variant="outline" className="border-white/10 text-gray-400 hover:text-white hover:bg-white/5 rounded-sm text-xs" onClick={() => navigate('/collection')} data-testid="go-to-collection">
+        <Button variant="outline" className="rounded-sm text-xs" style={{ borderColor: 'var(--border-default)', color: 'var(--text-secondary)' }} onClick={() => navigate('/collection')} data-testid="go-to-collection">
           View Collection
         </Button>
-        <Button variant="outline" className="border-white/10 text-gray-400 hover:text-white hover:bg-white/5 rounded-sm text-xs" onClick={() => navigate('/trading')} data-testid="go-to-trading">
+        <Button variant="outline" className="rounded-sm text-xs" style={{ borderColor: 'var(--border-default)', color: 'var(--text-secondary)' }} onClick={() => navigate('/trading')} data-testid="go-to-trading">
           Trading Market
         </Button>
       </div>
 
       {/* Rarity Guide */}
-      <Card className="bg-[#121212] border-white/5 p-5">
-        <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4" style={{ fontFamily: 'Barlow Condensed, sans-serif' }}>
+      <Card className="border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
+        <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
           Rarity Guide & Player Boosts
         </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {Object.entries(RARITY_STYLES).map(([rarity, style]) => (
             <div key={rarity} className={`${style.bg} ${style.border} border rounded-lg p-3 text-center`}>
               <Badge className={`${style.bg} ${style.text} text-xs mb-2`}>{style.label}</Badge>
@@ -264,6 +269,7 @@ export default function PackOpening() {
                 {rarity === 'rare' && 'Rating 80-85 | +6-7% boost'}
                 {rarity === 'epic' && 'Rating 85-88 | +8-9% boost'}
                 {rarity === 'legendary' && 'Rating 90-93 | +10-12% boost'}
+                {rarity === 'icon' && 'Rating 96-98 | +12-15% boost'}
               </p>
             </div>
           ))}

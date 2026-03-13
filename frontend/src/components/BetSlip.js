@@ -79,28 +79,28 @@ export default function BetSlip({ match }) {
 
   if (match.status === 'finished') {
     return (
-      <Card className="bg-[#121212] border-white/5 p-6 text-center" data-testid="bet-slip-closed">
-        <AlertCircle className="w-8 h-8 text-gray-500 mx-auto mb-3" />
-        <p className="text-gray-400">Match terminé. Les paris sont fermés.</p>
+      <Card className="border p-6 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }} data-testid="bet-slip-closed">
+        <AlertCircle className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
+        <p style={{ color: 'var(--text-secondary)' }}>Match terminé. Les paris sont fermés.</p>
       </Card>
     );
   }
 
   return (
-    <Card className="bg-[#121212] border-white/5 p-5 space-y-5" data-testid="bet-slip">
+    <Card className="border p-5 space-y-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }} data-testid="bet-slip">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-white uppercase tracking-wider" style={{ fontFamily: 'Barlow Condensed, sans-serif' }}>Placer un pari</h3>
+        <h3 className="text-sm font-bold uppercase tracking-wider" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>Placer un pari</h3>
         {user && (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-sm bg-[#1E1E1E] border border-white/5">
-            <Coins className="w-3.5 h-3.5 text-[#FFD700]" />
-            <span className="font-mono-data text-xs text-[#FFD700]">{user.virtual_credits?.toLocaleString()}</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-sm border" style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border-default)' }}>
+            <Coins className="w-3.5 h-3.5" style={{ color: 'var(--accent-gold)' }} />
+            <span className="font-mono-data text-xs" style={{ color: 'var(--accent-gold)' }}>{user.virtual_credits?.toLocaleString()}</span>
           </div>
         )}
       </div>
 
       {/* Bet type grid */}
       <div className="space-y-2">
-        <label className="text-xs text-gray-400 uppercase tracking-wider">Type de pari</label>
+        <label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Type de pari</label>
         <div className="grid grid-cols-3 gap-2">
           {BET_TYPES.map(bt => {
             const o = getOdds(bt.value);
@@ -110,12 +110,14 @@ export default function BetSlip({ match }) {
               <button
                 key={bt.value}
                 onClick={() => { setBetType(bt.value); setPrediction(''); }}
-                className={`p-2.5 rounded-lg border text-center transition-all ${
-                  betType === bt.value ? 'border-[#39FF14]/30 bg-[#39FF14]/5' : 'border-white/5 bg-[#0A0A0A] hover:border-white/10'
-                }`}
+                className="p-2.5 rounded-lg border text-center transition-all"
+                style={{
+                  borderColor: betType === bt.value ? 'color-mix(in srgb, var(--accent) 30%, transparent)' : 'var(--border-default)',
+                  background: betType === bt.value ? 'color-mix(in srgb, var(--accent) 5%, transparent)' : 'var(--bg-input)',
+                }}
                 data-testid={`bet-type-${bt.value}`}
               >
-                <p className="text-xs text-gray-400 truncate">{bt.label}</p>
+                <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{bt.label}</p>
                 <div className="flex items-center justify-center gap-1">
                   {changed && (
                     <span className="text-[9px] text-gray-600 line-through font-mono-data">x{o.base}</span>
@@ -133,7 +135,7 @@ export default function BetSlip({ match }) {
 
       {/* Prediction value based on bet type */}
       <div className="space-y-2">
-        <label className="text-xs text-gray-400 uppercase tracking-wider">Votre prédiction</label>
+        <label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Votre prédiction</label>
         {betType === 'winner' ? (
           <div className="grid grid-cols-3 gap-2">
             {[
@@ -142,24 +144,31 @@ export default function BetSlip({ match }) {
               { value: 'away', label: match.away_team?.short },
             ].map(opt => (
               <button key={opt.value} onClick={() => setPrediction(opt.value)}
-                className={`p-3 rounded-lg border text-center text-sm font-medium transition-all ${prediction === opt.value ? 'border-[#39FF14]/30 bg-[#39FF14]/10 text-[#39FF14]' : 'border-white/5 bg-[#0A0A0A] text-gray-400 hover:border-white/10'}`}
+                className="p-3 rounded-lg border text-center text-sm font-medium transition-all"
+                style={{
+                  borderColor: prediction === opt.value ? 'color-mix(in srgb, var(--accent) 30%, transparent)' : 'var(--border-default)',
+                  background: prediction === opt.value ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'var(--bg-input)',
+                  color: prediction === opt.value ? 'var(--accent)' : 'var(--text-secondary)',
+                }}
                 data-testid={`pred-${opt.value}`}>{opt.label}</button>
             ))}
           </div>
         ) : betType === 'exact_score' ? (
           <Input placeholder="ex: 2-1" value={prediction} onChange={e => setPrediction(e.target.value)}
-            className="bg-[#0A0A0A] border-white/10 text-white font-mono-data" data-testid="pred-exact-score" />
+            style={{ background: 'var(--bg-input)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }}
+            className="font-mono-data" data-testid="pred-exact-score" />
         ) : betType === 'first_scorer' ? (
           <Input placeholder="Nom du joueur (ex: Mbappé)" value={prediction} onChange={e => setPrediction(e.target.value)}
-            className="bg-[#0A0A0A] border-white/10 text-white" data-testid="pred-first-scorer" />
+            style={{ background: 'var(--bg-input)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }}
+            data-testid="pred-first-scorer" />
         ) : betType === 'total_goals' ? (
           <Select value={prediction} onValueChange={setPrediction}>
-            <SelectTrigger className="bg-[#0A0A0A] border-white/10 text-white" data-testid="pred-total-goals">
+            <SelectTrigger style={{ background: 'var(--bg-input)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }} data-testid="pred-total-goals">
               <SelectValue placeholder="Total de buts" />
             </SelectTrigger>
-            <SelectContent className="bg-[#121212] border-white/10">
+            <SelectContent style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
               {['0', '1', '2', '3', '4', '5', '6+'].map(g => (
-                <SelectItem key={g} value={g} className="text-white hover:bg-white/5 focus:bg-white/5">{g} buts</SelectItem>
+                <SelectItem key={g} value={g} style={{ color: 'var(--text-primary)' }}>{g} buts</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -167,7 +176,12 @@ export default function BetSlip({ match }) {
           <div className="grid grid-cols-2 gap-2">
             {[{ value: 'yes', label: 'Oui' }, { value: 'no', label: 'Non' }].map(opt => (
               <button key={opt.value} onClick={() => setPrediction(opt.value)}
-                className={`p-3 rounded-lg border text-center text-sm font-medium transition-all ${prediction === opt.value ? 'border-[#39FF14]/30 bg-[#39FF14]/10 text-[#39FF14]' : 'border-white/5 bg-[#0A0A0A] text-gray-400 hover:border-white/10'}`}
+                className="p-3 rounded-lg border text-center text-sm font-medium transition-all"
+                style={{
+                  borderColor: prediction === opt.value ? 'color-mix(in srgb, var(--accent) 30%, transparent)' : 'var(--border-default)',
+                  background: prediction === opt.value ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'var(--bg-input)',
+                  color: prediction === opt.value ? 'var(--accent)' : 'var(--text-secondary)',
+                }}
                 data-testid={`pred-bts-${opt.value}`}>{opt.label}</button>
             ))}
           </div>
@@ -179,7 +193,12 @@ export default function BetSlip({ match }) {
               { value: 'over_3.5', label: 'Over 3.5' }, { value: 'under_3.5', label: 'Under 3.5' },
             ].map(opt => (
               <button key={opt.value} onClick={() => setPrediction(opt.value)}
-                className={`p-2 rounded-lg border text-center text-xs font-medium transition-all ${prediction === opt.value ? 'border-[#39FF14]/30 bg-[#39FF14]/10 text-[#39FF14]' : 'border-white/5 bg-[#0A0A0A] text-gray-400 hover:border-white/10'}`}
+                className="p-2 rounded-lg border text-center text-xs font-medium transition-all"
+                style={{
+                  borderColor: prediction === opt.value ? 'color-mix(in srgb, var(--accent) 30%, transparent)' : 'var(--border-default)',
+                  background: prediction === opt.value ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'var(--bg-input)',
+                  color: prediction === opt.value ? 'var(--accent)' : 'var(--text-secondary)',
+                }}
                 data-testid={`pred-ou-${opt.value}`}>{opt.label}</button>
             ))}
           </div>
@@ -188,14 +207,20 @@ export default function BetSlip({ match }) {
 
       {/* Amount */}
       <div className="space-y-2">
-        <label className="text-xs text-gray-400 uppercase tracking-wider">Mise</label>
+        <label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Mise</label>
         <div className="flex gap-2">
           <Input type="number" value={amount} onChange={e => setAmount(Math.max(0, parseInt(e.target.value) || 0))}
-            className="bg-[#0A0A0A] border-white/10 text-white font-mono-data" min="1" data-testid="bet-amount-input" />
+            style={{ background: 'var(--bg-input)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }}
+            className="font-mono-data" min="1" data-testid="bet-amount-input" />
           <div className="flex gap-1">
             {[50, 100, 250, 500].map(v => (
               <Button key={v} size="sm" variant="outline" onClick={() => setAmount(v)}
-                className={`border-white/10 text-xs ${amount === v ? 'bg-[#39FF14]/10 text-[#39FF14] border-[#39FF14]/30' : 'text-gray-400'}`}
+                className="text-xs"
+                style={{
+                  borderColor: amount === v ? 'color-mix(in srgb, var(--accent) 30%, transparent)' : 'var(--border-default)',
+                  color: amount === v ? 'var(--accent)' : 'var(--text-secondary)',
+                  background: amount === v ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
+                }}
                 data-testid={`amount-${v}`}>{v}</Button>
             ))}
           </div>
@@ -221,13 +246,13 @@ export default function BetSlip({ match }) {
       )}
 
       {/* Summary */}
-      <div className="bg-[#0A0A0A] border border-white/5 rounded-lg p-4 space-y-2">
-        <div className="flex justify-between text-xs text-gray-400">
+      <div className="border rounded-lg p-4 space-y-2" style={{ background: 'var(--bg-input)', borderColor: 'var(--border-default)' }}>
+        <div className="flex justify-between text-xs" style={{ color: 'var(--text-secondary)' }}>
           <span>Cote de base</span>
-          <span className="font-mono-data text-white">x{currentBetOdds.base}</span>
+          <span className="font-mono-data" style={{ color: 'var(--text-primary)' }}>x{currentBetOdds.base}</span>
         </div>
         {oddsChanged && (
-          <div className="flex justify-between text-xs text-gray-400">
+          <div className="flex justify-between text-xs" style={{ color: 'var(--text-secondary)' }}>
             <span className="flex items-center gap-1">
               {isLive && <span className="w-1.5 h-1.5 rounded-full bg-[#FF0055] animate-pulse" />}
               Cote live ({dynamicOdds?.score?.home}-{dynamicOdds?.score?.away}, {dynamicOdds?.elapsed}')
@@ -238,27 +263,28 @@ export default function BetSlip({ match }) {
           </div>
         )}
         {totalBoost > 0 && (
-          <div className="flex justify-between text-xs text-gray-400">
+          <div className="flex justify-between text-xs" style={{ color: 'var(--text-secondary)' }}>
             <span>Boost joueur</span>
             <span className="font-mono-data text-[#39FF14]">+{totalBoost}%</span>
           </div>
         )}
-        <div className="flex justify-between text-xs text-gray-400">
+        <div className="flex justify-between text-xs" style={{ color: 'var(--text-secondary)' }}>
           <span>Cote finale</span>
           <span className="font-mono-data text-[#39FF14]">x{finalOdds}</span>
         </div>
-        <div className="flex justify-between text-xs text-gray-400">
+        <div className="flex justify-between text-xs" style={{ color: 'var(--text-secondary)' }}>
           <span>Mise</span>
-          <span className="font-mono-data text-white">{amount}</span>
+          <span className="font-mono-data" style={{ color: 'var(--text-primary)' }}>{amount}</span>
         </div>
-        <div className="border-t border-white/5 pt-2 flex justify-between">
-          <span className="text-xs text-gray-400">Gain potentiel</span>
+        <div className="border-t pt-2 flex justify-between" style={{ borderColor: 'var(--border-default)' }}>
+          <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>Gain potentiel</span>
           <span className="font-mono-data text-sm font-bold text-[#39FF14]" data-testid="potential-win">{potentialWin}</span>
         </div>
       </div>
 
       <Button onClick={handleBet} disabled={loading || !prediction || amount <= 0}
-        className="w-full bg-[#39FF14] text-black font-bold uppercase tracking-wider hover:bg-[#39FF14]/90 hover:shadow-[0_0_20px_rgba(57,255,20,0.3)] transition-all rounded-sm py-5"
+        className="w-full font-bold uppercase tracking-wider hover:opacity-90 hover:shadow-lg transition-all rounded-sm py-5"
+        style={{ background: 'var(--accent)', color: '#000' }}
         data-testid="place-bet-btn">
         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
           <span className="flex items-center gap-2"><TrendingUp className="w-4 h-4" /> Placer le pari</span>

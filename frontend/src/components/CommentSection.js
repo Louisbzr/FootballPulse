@@ -63,19 +63,20 @@ export default function CommentSection({ matchId, comments, onRefresh }) {
             </div>
           )}
           <div className="flex gap-3">
-            <Avatar className="w-8 h-8 border border-white/10 shrink-0">
+            <Avatar className="w-8 h-8 border shrink-0" style={{ borderColor: 'var(--border-default)' }}>
               <AvatarImage src={user.avatar} />
-              <AvatarFallback className="bg-[#1E1E1E] text-[#39FF14] text-xs">{user.username?.[0]?.toUpperCase()}</AvatarFallback>
+              <AvatarFallback className="text-xs" style={{ background: 'var(--bg-elevated)', color: 'var(--accent)' }}>{user.username?.[0]?.toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="flex-1 flex gap-2">
               <Textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Share your analysis..."
-                className="min-h-[40px] max-h-[100px] bg-[#0A0A0A] border-white/10 text-white placeholder:text-gray-600 text-sm resize-none"
+                className="min-h-[40px] max-h-[100px] text-sm resize-none"
+                style={{ background: 'var(--bg-input)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }}
                 data-testid="comment-input"
               />
-              <Button type="submit" size="sm" disabled={loading || !message.trim()} className="bg-[#39FF14] text-black hover:bg-[#39FF14]/90 self-end" data-testid="comment-submit">
+              <Button type="submit" size="sm" disabled={loading || !message.trim()} className="self-end" style={{ background: 'var(--accent)', color: '#000' }} data-testid="comment-submit">
                 <Send className="w-4 h-4" />
               </Button>
             </div>
@@ -88,16 +89,16 @@ export default function CommentSection({ matchId, comments, onRefresh }) {
         {topLevel.map((c) => (
           <div key={c.id} className="animate-fadeInUp" data-testid={`comment-${c.id}`}>
             <div className="flex gap-3">
-              <Avatar className="w-7 h-7 border border-white/10 shrink-0 mt-0.5">
+              <Avatar className="w-7 h-7 border shrink-0 mt-0.5" style={{ borderColor: 'var(--border-default)' }}>
                 <AvatarImage src={c.avatar} />
-                <AvatarFallback className="bg-[#1E1E1E] text-[#39FF14] text-[10px]">{c.username?.[0]?.toUpperCase()}</AvatarFallback>
+                <AvatarFallback className="text-[10px]" style={{ background: 'var(--bg-elevated)', color: 'var(--accent)' }}>{c.username?.[0]?.toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-sm font-medium text-white">{c.username}</span>
-                  <span className="text-[10px] text-gray-600">{timeAgo(c.created_at)}</span>
+                  <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{c.username}</span>
+                  <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{timeAgo(c.created_at)}</span>
                 </div>
-                <p className="text-sm text-gray-300 leading-relaxed">{c.message}</p>
+                <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{c.message}</p>
                 <div className="flex items-center gap-3 mt-1.5">
                   <button
                     onClick={() => handleLike(c.id)}
@@ -109,23 +110,23 @@ export default function CommentSection({ matchId, comments, onRefresh }) {
                     <Heart className="w-3 h-3" fill={c.likes?.includes(user?.id) ? '#FF0055' : 'none'} />
                     {c.likes?.length || 0}
                   </button>
-                  <button onClick={() => setReplyTo(c.id)} className="flex items-center gap-1 text-xs text-gray-500 hover:text-[#00F0FF]" data-testid={`reply-btn-${c.id}`}>
+                  <button onClick={() => setReplyTo(c.id)} className="flex items-center gap-1 text-xs hover:text-[#00F0FF]" style={{ color: 'var(--text-muted)' }} data-testid={`reply-btn-${c.id}`}>
                     <MessageCircle className="w-3 h-3" /> Reply
                   </button>
                 </div>
                 {/* Replies */}
                 {replies.filter(r => r.parent_id === c.id).map((r) => (
-                  <div key={r.id} className="flex gap-2 mt-2 ml-2 pl-3 border-l border-white/5">
-                    <Avatar className="w-5 h-5 border border-white/10 shrink-0 mt-0.5">
+                  <div key={r.id} className="flex gap-2 mt-2 ml-2 pl-3 border-l" style={{ borderColor: 'var(--border-default)' }}>
+                    <Avatar className="w-5 h-5 border shrink-0 mt-0.5" style={{ borderColor: 'var(--border-default)' }}>
                       <AvatarImage src={r.avatar} />
-                      <AvatarFallback className="bg-[#1E1E1E] text-[#39FF14] text-[8px]">{r.username?.[0]?.toUpperCase()}</AvatarFallback>
+                      <AvatarFallback className="text-[8px]" style={{ background: 'var(--bg-elevated)', color: 'var(--accent)' }}>{r.username?.[0]?.toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-xs font-medium text-white">{r.username}</span>
-                        <span className="text-[10px] text-gray-600">{timeAgo(r.created_at)}</span>
+                        <span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>{r.username}</span>
+                        <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{timeAgo(r.created_at)}</span>
                       </div>
-                      <p className="text-xs text-gray-400">{r.message}</p>
+                      <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{r.message}</p>
                     </div>
                   </div>
                 ))}
@@ -134,7 +135,7 @@ export default function CommentSection({ matchId, comments, onRefresh }) {
           </div>
         ))}
         {topLevel.length === 0 && (
-          <p className="text-center text-gray-600 text-sm py-8">No comments yet. Be the first to analyze this match!</p>
+          <p className="text-center text-sm py-8" style={{ color: 'var(--text-muted)' }}>No comments yet. Be the first to analyze this match!</p>
         )}
       </div>
     </div>
