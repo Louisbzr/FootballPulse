@@ -1,87 +1,93 @@
 # MatchPulse - Football Match Analyzer + Prediction Game
 
 ## Original Problem Statement
-Build a full-stack JavaScript application called "Football Match Analyzer + Prediction Game" with:
-- Match analysis with advanced statistics
-- Interactive football pitch visualization
-- Social features (comments, discussions)
-- Virtual betting/prediction system
-- Gamification (XP, levels, badges)
-- Real-time notifications
+Build a full-stack application "Football Match Analyzer + Prediction Game" with match analysis, interactive pitch, social features, virtual betting, and gamification.
 
 ## Tech Stack
 - **Frontend:** React (CRA), TailwindCSS, Shadcn/UI, Recharts, React Router
-- **Backend:** FastAPI (Python), MongoDB (motor async driver)
-- **Auth:** JWT-based authentication
-- **External API:** API-Football Pro Plan ($19/month) - v3.football.api-sports.io
+- **Backend:** FastAPI (Python), MongoDB (motor async), modular architecture
+- **Auth:** JWT-based
+- **External API:** API-Football Pro Plan ($19/month) - Key in backend/.env
 
-## User Language
-French (all user-facing communication must be in French)
+## User Language: French
 
-## Implemented Features
+## Architecture (Refactored - Mar 2026)
+```
+backend/
+├── server.py          # Slim app setup, middleware, router includes
+├── config.py          # DB, auth helpers, constants, gamification helpers
+├── models.py          # Pydantic models
+├── data/
+│   └── players.py     # 80 players (10 legendary, 20 epic, 25 rare, 25 common)
+└── routes/
+    ├── auth.py        # Register, login, profile, badges, teams
+    ├── matches.py     # Matches CRUD, API-Football sync, events
+    ├── bets.py        # 6 bet types, boost calc, resolve
+    ├── social.py      # Comments, leaderboard (all-time + weekly), dashboard
+    └── gacha.py       # Packs, collection, equip, trading, daily challenge, frames
+```
 
-### Phase 1 - MVP (Complete)
-- [x] JWT Authentication (register, login, profile, me)
-- [x] Dark theme with neon green (#39FF14) accents
-- [x] Home, Matches, Match Detail, Login, Register, Dashboard pages
-- [x] Match detail: score, event timeline, stats charts, interactive pitch
-- [x] Virtual betting with odds & payouts
-- [x] Comment system with replies and likes
-- [x] XP, levels, badges system
-- [x] All-time leaderboard, User dashboard
+## Implemented Features (All Complete)
 
-### Phase 2 - Gamification (Complete)
-- [x] Daily login bonus with streak multiplier
-- [x] Player pack "gacha" system (Bronze/Silver/Gold)
-- [x] Player collection, Team boost, Avatar frames
+### Phase 1 - MVP
+- [x] JWT Auth, dark theme UI, all pages
+- [x] Match detail with stats, interactive pitch
+- [x] Virtual betting, comments, XP/levels/badges
+- [x] Leaderboard, dashboard
 
-### Phase 3 - Live Data & Advanced Features (Complete - Mar 2026)
-- [x] **API-Football Pro integration** (6 leagues: Ligue 1, PL, La Liga, Serie A, Bundesliga, UCL)
-- [x] 209 real matches synced (106 finished, 97 upcoming, 4+ live)
-- [x] 508 real events (goals, cards, subs) from live API
-- [x] 30+ matches with detailed stats (possession, shots, passes, etc.)
-- [x] Smart sort: Live > Upcoming > Finished
-- [x] Player Trading marketplace
-- [x] Weekly leaderboard with All Time / This Week tabs
-- [x] Daily Challenge "Pack Luck"
-- [x] Polished pack opening animations
-- [x] Clean mock data endpoint
+### Phase 2 - Gamification
+- [x] Daily login bonus with streak
+- [x] Gacha packs (Bronze/Silver/Gold)
+- [x] Player collection, team boosts, avatar frames
 
-## 6 Leagues Supported
-| League | API ID |
-|--------|--------|
-| Ligue 1 | 61 |
-| Premier League | 39 |
-| La Liga | 140 |
-| Champions League | 2 |
-| Serie A | 135 |
-| Bundesliga | 78 |
+### Phase 3 - Live Data (Mar 2026)
+- [x] API-Football Pro (6 leagues: Ligue 1, PL, La Liga, UCL, Serie A, Bundesliga)
+- [x] 209+ real matches, 500+ events, lineups, stats
+- [x] Trading marketplace, weekly leaderboard
+- [x] Daily challenge "Pack Luck"
+- [x] Polished pack animations
 
-## Key API Endpoints
+### Phase 4 - Advanced Features (Mar 2026)
+- [x] **Backend refactored** into modular routes/config/models/data
+- [x] **Match details**: Goalscorers with minute + assist, lineups (formation, coach, XI, subs), cards (yellow/red)
+- [x] **Live minutes**: Elapsed time on cards and match detail
+- [x] **6 bet types**: Vainqueur (x1.8), Score exact (x5), 1er buteur (x4.5), Total buts (x2.5), Les 2 marquent (x1.9), Over/Under (x1.85)
+- [x] **Equip system**: ONE player equipped = boost on team matches. Cannot unequip if bet today
+- [x] **80 players** in packs (real players from 6 leagues)
+- [x] **Daily challenge**: Picks best match of the day (UCL > PL > La Liga priority)
+- [x] Auto-refresh for live matches (30s interval)
+
+## 6 Leagues
+| League | API ID | Season |
+|--------|--------|--------|
+| Ligue 1 | 61 | 2025 |
+| Premier League | 39 | 2025 |
+| La Liga | 140 | 2025 |
+| Champions League | 2 | 2025 |
+| Serie A | 135 | 2025 |
+| Bundesliga | 78 | 2025 |
+
+## Key Endpoints
 - Auth: `/api/auth/{register,login,me,profile}`
-- Matches: `/api/matches`, `/api/matches/{id}`
-- Bets: `/api/bets`, `/api/bets/my`, `/api/bets/resolve/{match_id}`
+- Matches: `/api/matches`, `/api/matches/{id}`, `/api/matches/{id}/events`
+- Bets: `/api/bets`, `/api/bets/my`, `/api/bets/resolve/{id}`, `/api/boosts/{id}`
+- Equip: `/api/equip/{id}`, `/api/unequip`, `/api/equipped`
 - Comments: `/api/matches/{id}/comments`, `/api/comments/{id}/like`
 - Leaderboard: `/api/leaderboard`, `/api/leaderboard/weekly`
 - Packs: `/api/packs`, `/api/packs/open/{type}`
-- Collection: `/api/collection`, `/api/collection/sell/{player_id}`
+- Collection: `/api/collection`, `/api/collection/sell/{id}`
 - Trading: `/api/trades`, `/api/trades/{id}/buy`, `/api/trades/{id}/cancel`
 - Challenge: `/api/daily-challenge`, `/api/daily-challenge/predict`, `/api/daily-challenge/check`
 - Football: `/api/football/sync`, `/api/football/leagues`, `/api/football/clean-mock`
-- Daily: `/api/daily-claim`, `/api/daily-status`
 
-## API Key
-- Plan: Pro ($19/month)
-- Key stored in: `/app/backend/.env` as `FOOTBALL_API_KEY`
-- Season: 2025 (current)
-- Quota: 7500 requests/day
+## Testing
+- Iteration 3: Backend 20/20 (100%), Frontend 100%
+- Test files: /app/test_reports/iteration_3.json
 
 ## Backlog
 ### P1
 - [ ] Real-time notifications (Socket.io)
 - [ ] Password recovery flow
 ### P2
-- [ ] Advanced pitch visualization (heatmaps)
-- [ ] Cloudinary integration for avatars
-### Refactoring
-- [ ] Break server.py into modular routes/services/models
+- [ ] Advanced pitch (heatmaps, player zones)
+- [ ] Cloudinary avatars
