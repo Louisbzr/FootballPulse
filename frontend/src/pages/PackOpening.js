@@ -10,11 +10,11 @@ import api from '@/lib/api';
 import { toast } from 'sonner';
 
 const RARITY_STYLES = {
-  common: { bg: 'bg-gray-500/10', border: 'border-gray-500/30', text: 'text-gray-400', glow: '', label: 'Common', color: '#888' },
+  common: { bg: 'bg-gray-500/10', border: 'border-gray-500/30', text: 'text-gray-400', glow: '', label: 'Commun', color: '#888' },
   rare: { bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400', glow: 'shadow-[0_0_20px_rgba(59,130,246,0.4)]', label: 'Rare', color: '#3B82F6' },
-  epic: { bg: 'bg-purple-500/10', border: 'border-purple-500/30', text: 'text-purple-400', glow: 'shadow-[0_0_25px_rgba(168,85,247,0.5)]', label: 'Epic', color: '#A855F7' },
-  legendary: { bg: 'bg-[#FFD700]/10', border: 'border-[#FFD700]/30', text: 'text-[#FFD700]', glow: 'shadow-[0_0_40px_rgba(255,215,0,0.6)]', label: 'Legendary', color: '#FFD700' },
-  icon: { bg: 'bg-[#FF8C00]/10', border: 'border-[#FF8C00]/40', text: 'text-[#FF8C00]', glow: 'shadow-[0_0_50px_rgba(255,140,0,0.8)]', label: 'ICON', color: '#FF8C00' },
+  epic: { bg: 'bg-purple-500/10', border: 'border-purple-500/30', text: 'text-purple-400', glow: 'shadow-[0_0_25px_rgba(168,85,247,0.5)]', label: 'Épique', color: '#A855F7' },
+  legendary: { bg: 'bg-[#FFD700]/10', border: 'border-[#FFD700]/30', text: 'text-[#FFD700]', glow: 'shadow-[0_0_40px_rgba(255,215,0,0.6)]', label: 'Légendaire', color: '#FFD700' },
+  icon: { bg: 'bg-[#FF8C00]/10', border: 'border-[#FF8C00]/40', text: 'text-[#FF8C00]', glow: 'shadow-[0_0_50px_rgba(255,140,0,0.8)]', label: 'ICÔNE', color: '#FF8C00' },
 };
 
 const PACK_INFO = {

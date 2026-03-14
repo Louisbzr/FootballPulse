@@ -8,11 +8,11 @@ import { BookOpen, Loader2, Star, ShieldCheck, ShieldOff, Coins, Trash2 } from '
 import { toast } from 'sonner';
 
 const RARITY_STYLES = {
-  common: { bg: 'bg-gray-500/10', border: 'border-gray-500/30', text: 'text-gray-400', label: 'Common', color: '#888' },
+  common: { bg: 'bg-gray-500/10', border: 'border-gray-500/30', text: 'text-gray-400', label: 'Commun', color: '#888' },
   rare: { bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400', label: 'Rare', color: '#3B82F6' },
-  epic: { bg: 'bg-purple-500/10', border: 'border-purple-500/30', text: 'text-purple-400', label: 'Epic', color: '#A855F7' },
-  legendary: { bg: 'bg-[#FFD700]/10', border: 'border-[#FFD700]/30', text: 'text-[#FFD700]', label: 'Legendary', color: '#FFD700' },
-  icon: { bg: 'bg-[#FF8C00]/10', border: 'border-[#FF8C00]/40', text: 'text-[#FF8C00]', label: 'ICON', color: '#FF8C00' },
+  epic: { bg: 'bg-purple-500/10', border: 'border-purple-500/30', text: 'text-purple-400', label: 'Épique', color: '#A855F7' },
+  legendary: { bg: 'bg-[#FFD700]/10', border: 'border-[#FFD700]/30', text: 'text-[#FFD700]', label: 'Légendaire', color: '#FFD700' },
+  icon: { bg: 'bg-[#FF8C00]/10', border: 'border-[#FF8C00]/40', text: 'text-[#FF8C00]', label: 'ICÔNE', color: '#FF8C00' },
 };
 
 const SELL_PRICES = { common: 10, rare: 30, epic: 75, legendary: 250, icon: 1000 };

@@ -20,6 +20,7 @@ import PackOpening from "@/pages/PackOpening";
 import Collection from "@/pages/Collection";
 import Trading from "@/pages/Trading";
 import DailyChallenge from "@/pages/DailyChallenge";
+import Missions from "@/pages/Missions";
 import ForgotPassword from "@/pages/ForgotPassword";
 import { seedAPI } from "@/lib/api";
 import api from "@/lib/api";
@@ -53,6 +54,7 @@ function AppInner() {
             <Route path="/collection" element={<Collection />} />
             <Route path="/trading" element={<Trading />} />
             <Route path="/challenge" element={<DailyChallenge />} />
+            <Route path="/missions" element={<Missions />} />
           </Routes>
         </main>
       </BrowserRouter>

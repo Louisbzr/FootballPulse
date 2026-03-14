@@ -133,4 +133,10 @@ export const oddsAPI = {
   get: (matchId) => api.get(`/odds/${matchId}`),
 };
 
+// Missions
+export const missionsAPI = {
+  get: () => api.get('/missions'),
+  claim: (missionId) => api.post(`/missions/${missionId}/claim`),
+};
+
 export default api;

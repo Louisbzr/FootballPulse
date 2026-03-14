@@ -72,6 +72,8 @@ async def open_pack(pack_type: str, user=Depends(get_current_user)):
         player = pick_player(rarity)
         entry = {"id": str(uuid.uuid4()), "user_id": user["id"], "player_id": player["id"], "obtained_at": datetime.now(timezone.utc).isoformat(), "source": f"{pack_type}_pack"}
         await db.user_players.insert_one({**entry})
+        # Track pack open for missions
+        await db.pack_opens.insert_one({"user_id": user["id"], "player_id": player["id"], "rarity": player["rarity"], "pack_type": pack_type, "opened_at": datetime.now(timezone.utc).isoformat()})
         pulled.append({**player, "entry_id": entry["id"]})
     updated = await db.users.find_one({"id": user["id"]}, {"_id": 0, "password_hash": 0})
     return {"players": pulled, "remaining_credits": updated["virtual_credits"]}

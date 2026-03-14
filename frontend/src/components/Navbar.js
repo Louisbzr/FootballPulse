@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { to: '/predictions', label: 'Pronostics', icon: Target },
   { to: '/packs', label: 'Packs', icon: Package },
   { to: '/trading', label: 'Échange', icon: ArrowRightLeft },
+  { to: '/missions', label: 'Missions', icon: Flame },
   { to: '/challenge', label: 'Défi', icon: Gift },
   { to: '/leaderboard', label: 'Classement', icon: Trophy },
 ];
