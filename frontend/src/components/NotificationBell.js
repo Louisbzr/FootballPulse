@@ -5,34 +5,34 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 const NOTIF_TYPES = {
-  bet_won: { icon: Trophy, color: '#39FF14', label: 'Bet Won' },
-  bet_lost: { icon: Coins, color: '#FF0055', label: 'Bet Lost' },
-  badge_earned: { icon: Trophy, color: '#FFD700', label: 'Badge Earned' },
-  pack_opened: { icon: Package, color: '#A855F7', label: 'Pack Opened' },
-  comment_reply: { icon: MessageCircle, color: '#00F0FF', label: 'Reply' },
-  trade_bought: { icon: Coins, color: '#FF8C00', label: 'Trade Sold' },
-  level_up: { icon: Trophy, color: '#39FF14', label: 'Level Up' },
+  bet_won: { icon: Trophy, color: '#39FF14', label: 'Pari gagné' },
+  bet_lost: { icon: Coins, color: '#FF0055', label: 'Pari perdu' },
+  badge_earned: { icon: Trophy, color: '#FFD700', label: 'Badge obtenu' },
+  pack_opened: { icon: Package, color: '#A855F7', label: 'Pack ouvert' },
+  comment_reply: { icon: MessageCircle, color: '#00F0FF', label: 'Réponse' },
+  trade_bought: { icon: Coins, color: '#FF8C00', label: 'Vente effectuée' },
+  level_up: { icon: Trophy, color: '#39FF14', label: 'Niveau supérieur' },
 };
 
 function timeAgo(dateStr) {
   const diff = (Date.now() - new Date(dateStr).getTime()) / 1000;
-  if (diff < 60) return 'just now';
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
+  if (diff < 60) return 'à l\'instant';
+  if (diff < 3600) return `il y a ${Math.floor(diff / 60)}m`;
+  if (diff < 86400) return `il y a ${Math.floor(diff / 3600)}h`;
+  return `il y a ${Math.floor(diff / 86400)}j`;
 }
 
 function formatNotification(notif) {
   const d = notif.data || {};
   switch (notif.type) {
-    case 'bet_won': return `You won ${d.amount_won} credits on ${d.match}!`;
-    case 'bet_lost': return `Lost ${d.amount_lost} credits on ${d.match}`;
-    case 'badge_earned': return `Badge unlocked: ${d.badge_name}!`;
-    case 'pack_opened': return `Opened a pack and got ${d.player_name} (${d.rarity})`;
-    case 'comment_reply': return `${d.username} replied to your comment`;
-    case 'trade_bought': return `${d.buyer_name} bought your ${d.player_name} for ${d.price}`;
-    case 'level_up': return `You reached ${d.new_level}!`;
-    default: return d.message || 'New notification';
+    case 'bet_won': return `Vous avez gagné ${d.amount_won} crédits sur ${d.match} !`;
+    case 'bet_lost': return `Perdu ${d.amount_lost} crédits sur ${d.match}`;
+    case 'badge_earned': return `Badge débloqué : ${d.badge_name} !`;
+    case 'pack_opened': return `Pack ouvert : ${d.player_name} (${d.rarity})`;
+    case 'comment_reply': return `${d.username} a répondu à votre commentaire`;
+    case 'trade_bought': return `${d.buyer_name} a acheté votre ${d.player_name} pour ${d.price}`;
+    case 'level_up': return `Vous avez atteint ${d.new_level} !`;
+    default: return d.message || 'Nouvelle notification';
   }
 }
 
@@ -81,7 +81,7 @@ export default function NotificationBell() {
                 style={{ color: 'var(--accent)' }}
                 data-testid="mark-all-read"
               >
-                <CheckCheck className="w-3 h-3" /> Mark all read
+                <CheckCheck className="w-3 h-3" /> Tout marquer lu
               </button>
             )}
           </div>
@@ -116,7 +116,7 @@ export default function NotificationBell() {
             ) : (
               <div className="px-4 py-10 text-center">
                 <Bell className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--text-muted)' }} />
-                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>No notifications yet</p>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Aucune notification</p>
               </div>
             )}
           </div>

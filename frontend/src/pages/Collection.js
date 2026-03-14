@@ -137,8 +137,8 @@ export default function Collection() {
       {/* Filters */}
       <div className="flex gap-1 p-1 rounded-lg border mb-6 w-fit" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }} data-testid="collection-filters">
         {[
-          { value: 'owned', label: `Owned (${owned.length})` },
-          { value: 'all', label: `All (${collection.length})` },
+          { value: 'owned', label: `Possédés (${owned.length})` },
+          { value: 'all', label: `Tous (${collection.length})` },
         ].map(f => (
           <Button key={f.value} size="sm" variant="ghost" onClick={() => setFilter(f.value)}
             className="text-xs rounded-md"

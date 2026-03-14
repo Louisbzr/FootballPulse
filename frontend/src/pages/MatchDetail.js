@@ -12,12 +12,12 @@ import BetSlip from '@/components/BetSlip';
 import { Calendar, MapPin, ArrowLeft, Loader2, Users, Timer } from 'lucide-react';
 
 const EVENT_ICONS = {
-  goal: { icon: '\u26BD', color: '#39FF14', label: 'Goal' },
-  penalty: { icon: '\u26BD', color: '#39FF14', label: 'Penalty' },
-  own_goal: { icon: '\u26BD', color: '#FF0055', label: 'Own Goal' },
-  yellow_card: { icon: '\u25A0', color: '#FFD700', label: 'Yellow Card' },
-  red_card: { icon: '\u25A0', color: '#FF0055', label: 'Red Card' },
-  substitution: { icon: '\u21C4', color: '#FF8C00', label: 'Substitution' },
+  goal: { icon: '\u26BD', color: '#39FF14', label: 'But' },
+  penalty: { icon: '\u26BD', color: '#39FF14', label: 'Pénalty' },
+  own_goal: { icon: '\u26BD', color: '#FF0055', label: 'But c.s.c.' },
+  yellow_card: { icon: '\u25A0', color: '#FFD700', label: 'Carton jaune' },
+  red_card: { icon: '\u25A0', color: '#FF0055', label: 'Carton rouge' },
+  substitution: { icon: '\u21C4', color: '#FF8C00', label: 'Remplacement' },
   var: { icon: 'V', color: '#00F0FF', label: 'VAR' },
   corner: { icon: '\u25B7', color: '#A78BFA', label: 'Corner' },
   other: { icon: '\u25CF', color: '#888', label: '' },
@@ -74,7 +74,7 @@ function CardSummary({ events, match }) {
 }
 
 function LineupsPanel({ lineups, match }) {
-  if (!lineups) return <p className="text-center py-8" style={{ color: 'var(--text-muted)' }}>Lineups not available</p>;
+  if (!lineups) return <p className="text-center py-8" style={{ color: 'var(--text-muted)' }}>Compositions non disponibles</p>;
   const TeamLineup = ({ lineup, team, side }) => (
     <div className={side === 'home' ? '' : ''}>
       <div className="flex items-center gap-2 mb-3">
@@ -82,7 +82,7 @@ function LineupsPanel({ lineups, match }) {
         <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{team?.name}</span>
         <Badge variant="outline" className="text-[10px]" style={{ borderColor: 'var(--border-default)', color: 'var(--text-secondary)' }}>{lineup.formation}</Badge>
       </div>
-      {lineup.coach && <p className="text-[10px] mb-3" style={{ color: 'var(--text-muted)' }}>Coach: {lineup.coach}</p>}
+      {lineup.coach && <p className="text-[10px] mb-3" style={{ color: 'var(--text-muted)' }}>Entraîneur : {lineup.coach}</p>}
       <div className="space-y-1">
         {lineup.startXI?.map((p, i) => (
           <div key={i} className="flex items-center gap-2 text-xs py-1 border-b" style={{ borderColor: 'color-mix(in srgb, var(--border-default) 30%, transparent)' }}>
@@ -94,7 +94,7 @@ function LineupsPanel({ lineups, match }) {
       </div>
       {lineup.substitutes?.length > 0 && (
         <>
-          <p className="text-[10px] uppercase tracking-wider mt-3 mb-1" style={{ color: 'var(--text-muted)' }}>Substitutes</p>
+          <p className="text-[10px] uppercase tracking-wider mt-3 mb-1" style={{ color: 'var(--text-muted)' }}>Remplaçants</p>
           <div className="space-y-1">
             {lineup.substitutes.slice(0, 9).map((p, i) => (
               <div key={i} className="flex items-center gap-2 text-xs py-0.5 opacity-60">
@@ -165,7 +165,7 @@ export default function MatchDetail() {
 
   const events = match.events || [];
   const matchDate = new Date(match.date);
-  const STATUS_LABEL = { finished: 'Full Time', upcoming: 'Upcoming', live: 'LIVE' };
+  const STATUS_LABEL = { finished: 'Terminé', upcoming: 'À venir', live: 'EN DIRECT' };
   const hasLineups = !!match.lineups;
   const hasGoals = events.some(e => ['goal', 'penalty', 'own_goal'].includes(e.type));
   const hasCards = events.some(e => ['yellow_card', 'red_card'].includes(e.type));
@@ -173,7 +173,7 @@ export default function MatchDetail() {
   return (
     <div className="min-h-screen max-w-7xl mx-auto px-4 py-6" data-testid="match-detail-page">
       <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-sm mb-6 transition-colors hover:opacity-80" style={{ color: 'var(--text-muted)' }} data-testid="back-button">
-        <ArrowLeft className="w-4 h-4" /> Back
+        <ArrowLeft className="w-4 h-4" /> Retour
       </button>
 
       {/* Score Header */}
@@ -239,12 +239,12 @@ export default function MatchDetail() {
       {/* Tabs */}
       <Tabs defaultValue={match.status === 'upcoming' ? 'predictions' : events.length > 0 ? 'timeline' : (match.stats ? 'stats' : 'predictions')} className="space-y-4">
         <TabsList className="border p-1 rounded-lg w-full justify-start overflow-x-auto" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }} data-testid="match-tabs">
-          {events.length > 0 && <TabsTrigger value="timeline" className="data-[state=active]:bg-[#39FF14]/10 data-[state=active]:text-[#39FF14] text-xs rounded-md" style={{ color: 'var(--text-secondary)' }} data-testid="tab-timeline">Timeline</TabsTrigger>}
-          {match.stats && <TabsTrigger value="stats" className="data-[state=active]:bg-[#39FF14]/10 data-[state=active]:text-[#39FF14] text-xs rounded-md" style={{ color: 'var(--text-secondary)' }} data-testid="tab-stats">Statistics</TabsTrigger>}
-          {hasLineups && <TabsTrigger value="lineups" className="data-[state=active]:bg-[#39FF14]/10 data-[state=active]:text-[#39FF14] text-xs rounded-md" style={{ color: 'var(--text-secondary)' }} data-testid="tab-lineups"><Users className="w-3 h-3 mr-1 inline" />Lineups</TabsTrigger>}
-          {events.length > 0 && <TabsTrigger value="pitch" className="data-[state=active]:bg-[#39FF14]/10 data-[state=active]:text-[#39FF14] text-xs rounded-md" style={{ color: 'var(--text-secondary)' }} data-testid="tab-pitch">Pitch</TabsTrigger>}
-          <TabsTrigger value="predictions" className="data-[state=active]:bg-[#39FF14]/10 data-[state=active]:text-[#39FF14] text-xs rounded-md" style={{ color: 'var(--text-secondary)' }} data-testid="tab-predictions">Predictions</TabsTrigger>
-          <TabsTrigger value="comments" className="data-[state=active]:bg-[#39FF14]/10 data-[state=active]:text-[#39FF14] text-xs rounded-md" style={{ color: 'var(--text-secondary)' }} data-testid="tab-comments">Comments ({comments.length})</TabsTrigger>
+          {events.length > 0 && <TabsTrigger value="timeline" className="data-[state=active]:bg-[#39FF14]/10 data-[state=active]:text-[#39FF14] text-xs rounded-md" style={{ color: 'var(--text-secondary)' }} data-testid="tab-timeline">Chronologie</TabsTrigger>}
+          {match.stats && <TabsTrigger value="stats" className="data-[state=active]:bg-[#39FF14]/10 data-[state=active]:text-[#39FF14] text-xs rounded-md" style={{ color: 'var(--text-secondary)' }} data-testid="tab-stats">Statistiques</TabsTrigger>}
+          {hasLineups && <TabsTrigger value="lineups" className="data-[state=active]:bg-[#39FF14]/10 data-[state=active]:text-[#39FF14] text-xs rounded-md" style={{ color: 'var(--text-secondary)' }} data-testid="tab-lineups"><Users className="w-3 h-3 mr-1 inline" />Compositions</TabsTrigger>}
+          {events.length > 0 && <TabsTrigger value="pitch" className="data-[state=active]:bg-[#39FF14]/10 data-[state=active]:text-[#39FF14] text-xs rounded-md" style={{ color: 'var(--text-secondary)' }} data-testid="tab-pitch">Terrain</TabsTrigger>}
+          <TabsTrigger value="predictions" className="data-[state=active]:bg-[#39FF14]/10 data-[state=active]:text-[#39FF14] text-xs rounded-md" style={{ color: 'var(--text-secondary)' }} data-testid="tab-predictions">Pronostics</TabsTrigger>
+          <TabsTrigger value="comments" className="data-[state=active]:bg-[#39FF14]/10 data-[state=active]:text-[#39FF14] text-xs rounded-md" style={{ color: 'var(--text-secondary)' }} data-testid="tab-comments">Commentaires ({comments.length})</TabsTrigger>
         </TabsList>
 
         {/* Timeline */}
@@ -275,7 +275,7 @@ export default function MatchDetail() {
                   </div>
                 );
               })}
-              {events.length === 0 && <p className="text-center py-8" style={{ color: 'var(--text-muted)' }}>No events recorded</p>}
+              {events.length === 0 && <p className="text-center py-8" style={{ color: 'var(--text-muted)' }}>Aucun événement enregistré</p>}
             </div>
           </Card>
         </TabsContent>
@@ -289,15 +289,15 @@ export default function MatchDetail() {
               </Card>
             )}
             <Card className="border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
-              <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>Radar Comparison</h3>
+              <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>Comparaison Radar</h3>
               <StatsRadar stats={match.stats} homeTeam={match.home_team?.short} awayTeam={match.away_team?.short} />
             </Card>
             <Card className="border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
-              <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>Stats Breakdown</h3>
+              <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>Détail des stats</h3>
               <StatsBar stats={match.stats} homeTeam={match.home_team?.short} awayTeam={match.away_team?.short} />
             </Card>
             <Card className="border p-5 md:col-span-2" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
-              <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>Match Stats</h3>
+              <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>Stats du match</h3>
               <div className="space-y-3">
                 {match.stats && Object.entries(match.stats).filter(([k]) => k !== 'possession').map(([key, val]) => (
                   <div key={key} className="flex items-center gap-4">
@@ -329,7 +329,7 @@ export default function MatchDetail() {
         {/* Pitch */}
         <TabsContent value="pitch">
           <Card className="border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }} data-testid="pitch-panel">
-            <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>Event Map</h3>
+            <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>Carte des événements</h3>
             <FootballPitch events={events} showHeatmap={true} />
           </Card>
         </TabsContent>

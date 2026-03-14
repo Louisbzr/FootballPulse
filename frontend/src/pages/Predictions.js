@@ -34,9 +34,9 @@ export default function Predictions() {
       <div className="flex items-start justify-between mb-8">
         <div>
           <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
-            Predictions
+            Pronostics
           </h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Place virtual bets and earn credits</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Placez vos paris virtuels et gagnez des crédits</p>
         </div>
         {user && (
           <div className="flex items-center gap-2 px-4 py-2 rounded-lg border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
@@ -54,7 +54,7 @@ export default function Predictions() {
           <div className="lg:col-span-2 space-y-4">
             <h2 className="text-lg font-bold uppercase tracking-wider" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
               <Target className="w-4 h-4 inline mr-2" style={{ color: 'var(--accent)' }} />
-              Available Matches
+              Matchs disponibles
             </h2>
             {matches.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 stagger-children">
@@ -62,7 +62,7 @@ export default function Predictions() {
               </div>
             ) : (
               <Card className="border p-10 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
-                <p style={{ color: 'var(--text-secondary)' }}>No upcoming matches available</p>
+                <p style={{ color: 'var(--text-secondary)' }}>Aucun match à venir disponible</p>
               </Card>
             )}
           </div>
@@ -71,12 +71,12 @@ export default function Predictions() {
           <div className="space-y-4">
             <h2 className="text-lg font-bold uppercase tracking-wider" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
               <TrendingUp className="w-4 h-4 inline mr-2" style={{ color: 'var(--accent-secondary)' }} />
-              My Predictions
+              Mes pronostics
             </h2>
             {!user ? (
               <Card className="border p-6 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
-                <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>Login to see your predictions</p>
-                <Link to="/login" className="text-sm hover:underline" style={{ color: 'var(--accent)' }}>Sign in</Link>
+                <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>Connectez-vous pour voir vos pronostics</p>
+                <Link to="/login" className="text-sm hover:underline" style={{ color: 'var(--accent)' }}>Se connecter</Link>
               </Card>
             ) : myBets.length > 0 ? (
               <div className="space-y-2">
@@ -100,7 +100,7 @@ export default function Predictions() {
               </div>
             ) : (
               <Card className="border p-6 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
-                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>No predictions yet. Click a match to get started!</p>
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Aucun pronostic. Cliquez sur un match pour commencer !</p>
               </Card>
             )}
           </div>

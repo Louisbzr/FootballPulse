@@ -153,13 +153,13 @@ export default function Trading() {
           className="text-xs rounded-md gap-1.5"
           style={{ color: tab === 'market' ? 'var(--accent-secondary)' : 'var(--text-secondary)', background: tab === 'market' ? 'color-mix(in srgb, var(--accent-secondary) 10%, transparent)' : 'transparent' }}
           data-testid="tab-market">
-          <ShoppingCart className="w-3.5 h-3.5" /> Market
+          <ShoppingCart className="w-3.5 h-3.5" /> Marché
         </Button>
         <Button size="sm" variant="ghost" onClick={() => setTab('trends')}
           className="text-xs rounded-md gap-1.5"
           style={{ color: tab === 'trends' ? 'var(--accent-gold)' : 'var(--text-secondary)', background: tab === 'trends' ? 'color-mix(in srgb, var(--accent-gold) 10%, transparent)' : 'transparent' }}
           data-testid="tab-trends">
-          <BarChart3 className="w-3.5 h-3.5" /> Price Trends
+          <BarChart3 className="w-3.5 h-3.5" /> Tendances des prix
         </Button>
       </div>
 
@@ -170,7 +170,7 @@ export default function Trading() {
             <Card className="border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-bold uppercase tracking-wider" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
-                  Price History - {priceHistory[0]?.player_name}
+                  Historique des prix - {priceHistory[0]?.player_name}
                 </h3>
                 <Button size="sm" variant="ghost" onClick={() => { setSelectedHistory(null); setPriceHistory([]); }}
                   className="text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -193,18 +193,18 @@ export default function Trading() {
           <Card className="border overflow-hidden" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }} data-testid="market-overview-table">
             <div className="p-4 border-b" style={{ borderColor: 'var(--border-default)' }}>
               <h3 className="text-sm font-bold uppercase tracking-wider" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
-                <TrendingUp className="w-4 h-4 inline mr-2" style={{ color: 'var(--accent-gold)' }} /> Market Overview
+                <TrendingUp className="w-4 h-4 inline mr-2" style={{ color: 'var(--accent-gold)' }} /> Aperçu du marché
               </h3>
             </div>
             {marketData.length > 0 ? (
               <div>
                 <div className="grid grid-cols-[1fr_4rem_4rem_4rem_4rem_3rem] gap-2 px-4 py-2 text-[10px] uppercase tracking-wider border-b"
                   style={{ color: 'var(--text-muted)', borderColor: 'var(--border-default)' }}>
-                  <span>Player</span>
-                  <span className="text-right">Avg</span>
+                  <span>Joueur</span>
+                  <span className="text-right">Moy</span>
                   <span className="text-right">Min</span>
                   <span className="text-right">Max</span>
-                  <span className="text-right">Last</span>
+                  <span className="text-right">Dernier</span>
                   <span className="text-right">Txns</span>
                 </div>
                 {marketData.map(m => {

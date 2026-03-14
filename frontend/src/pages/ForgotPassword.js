@@ -26,13 +26,13 @@ export default function ForgotPassword() {
       if (res.data.token) {
         setResetToken(res.data.token);
         setStep('token');
-        toast.success('Reset token generated!');
+        toast.success('Jeton de réinitialisation généré !');
       } else {
-        toast.info('If this email exists, a reset link would be sent.');
+        toast.info('Si cet e-mail existe, un lien de réinitialisation serait envoyé.');
         setStep('token');
       }
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Error');
+      toast.error(err.response?.data?.detail || 'Erreur');
     } finally {
       setLoading(false);
     }
@@ -40,14 +40,14 @@ export default function ForgotPassword() {
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
-    if (newPassword.length < 6) { toast.error('Password must be at least 6 characters'); return; }
+    if (newPassword.length < 6) { toast.error('Le mot de passe doit contenir au moins 6 caractères'); return; }
     setLoading(true);
     try {
       await authAPI.resetPassword(token || resetToken, newPassword);
-      toast.success('Password reset successfully!');
+      toast.success('Mot de passe réinitialisé avec succès !');
       setStep('done');
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Error resetting password');
+      toast.error(err.response?.data?.detail || 'Erreur de réinitialisation');
     } finally {
       setLoading(false);
     }
@@ -57,7 +57,7 @@ export default function ForgotPassword() {
     navigator.clipboard.writeText(resetToken);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-    toast.success('Token copied!');
+    toast.success('Jeton copié !');
   };
 
   return (
@@ -68,17 +68,17 @@ export default function ForgotPassword() {
             <Lock className="w-7 h-7 text-black" />
           </div>
           <CardTitle className="text-2xl font-bold tracking-tight uppercase" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
-            {step === 'done' ? 'Password Reset!' : step === 'token' ? 'Reset Token' : step === 'reset' ? 'New Password' : 'Forgot Password'}
+            {step === 'done' ? 'Mot de passe réinitialisé !' : step === 'token' ? 'Jeton de réinitialisation' : step === 'reset' ? 'Nouveau mot de passe' : 'Mot de passe oublié'}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {step === 'email' && (
             <form onSubmit={handleRequestReset} className="space-y-4" data-testid="forgot-form">
               <p className="text-sm text-center" style={{ color: 'var(--text-secondary)' }}>
-                Enter your email to receive a reset token
+                Entrez votre e-mail pour recevoir un jeton de réinitialisation
               </p>
               <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Email</Label>
+                <Label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>E-mail</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                   <Input
@@ -89,7 +89,7 @@ export default function ForgotPassword() {
                 </div>
               </div>
               <Button type="submit" disabled={loading} className="w-full font-bold uppercase tracking-wider rounded-sm py-5" style={{ background: 'var(--accent)', color: '#000' }} data-testid="forgot-submit-btn">
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Request Reset'}
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Demander la réinitialisation'}
               </Button>
             </form>
           )}
@@ -99,7 +99,7 @@ export default function ForgotPassword() {
               {resetToken ? (
                 <>
                   <Badge className="rounded-sm text-xs w-full justify-center py-1" style={{ background: 'color-mix(in srgb, var(--accent-gold) 10%, transparent)', color: 'var(--accent-gold)' }}>
-                    Demo Mode - Token shown here
+                    Mode démo - Jeton affiché ici
                   </Badge>
                   <div className="p-3 rounded-lg border flex items-center gap-2" style={{ background: 'var(--bg-input)', borderColor: 'var(--border-default)' }}>
                     <code className="flex-1 text-xs break-all font-mono-data" style={{ color: 'var(--text-primary)' }}>{resetToken}</code>
@@ -108,16 +108,16 @@ export default function ForgotPassword() {
                     </Button>
                   </div>
                   <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>
-                    In production, this token would be emailed to you. Token expires in 1 hour.
+                    En production, ce jeton serait envoyé par e-mail. Le jeton expire dans 1 heure.
                   </p>
                 </>
               ) : (
                 <p className="text-sm text-center" style={{ color: 'var(--text-secondary)' }}>
-                  If this email exists in our system, a reset link would be sent.
+                  Si cet e-mail existe dans notre système, un lien de réinitialisation serait envoyé.
                 </p>
               )}
               <Button onClick={() => setStep('reset')} className="w-full font-bold uppercase tracking-wider rounded-sm py-5" style={{ background: 'var(--accent)', color: '#000' }} data-testid="proceed-reset-btn">
-                Enter Reset Token
+                Entrer le jeton
               </Button>
             </div>
           )}
@@ -125,26 +125,26 @@ export default function ForgotPassword() {
           {step === 'reset' && (
             <form onSubmit={handleResetPassword} className="space-y-4" data-testid="reset-form">
               <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Reset Token</Label>
+                <Label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Jeton de réinitialisation</Label>
                 <Input
                   value={token || resetToken} onChange={e => setToken(e.target.value)}
                   style={{ background: 'var(--bg-input)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }}
-                  placeholder="Paste your reset token" required data-testid="reset-token-input"
+                  placeholder="Collez votre jeton" required data-testid="reset-token-input"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>New Password</Label>
+                <Label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Nouveau mot de passe</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                   <Input
                     type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)}
                     className="pl-10" style={{ background: 'var(--bg-input)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }}
-                    placeholder="Min. 6 characters" required data-testid="reset-password-input"
+                    placeholder="Min. 6 caractères" required data-testid="reset-password-input"
                   />
                 </div>
               </div>
               <Button type="submit" disabled={loading} className="w-full font-bold uppercase tracking-wider rounded-sm py-5" style={{ background: 'var(--accent)', color: '#000' }} data-testid="reset-submit-btn">
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Reset Password'}
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Réinitialiser le mot de passe'}
               </Button>
             </form>
           )}
@@ -154,10 +154,10 @@ export default function ForgotPassword() {
               <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center" style={{ background: 'color-mix(in srgb, var(--accent) 10%, transparent)' }}>
                 <Check className="w-8 h-8" style={{ color: 'var(--accent)' }} />
               </div>
-              <p style={{ color: 'var(--text-secondary)' }}>Your password has been reset. You can now login.</p>
+              <p style={{ color: 'var(--text-secondary)' }}>Votre mot de passe a été réinitialisé. Vous pouvez maintenant vous connecter.</p>
               <Link to="/login">
                 <Button className="w-full font-bold uppercase tracking-wider rounded-sm py-5" style={{ background: 'var(--accent)', color: '#000' }} data-testid="go-to-login-btn">
-                  Go to Login
+                  Aller à la connexion
                 </Button>
               </Link>
             </div>
@@ -165,7 +165,7 @@ export default function ForgotPassword() {
 
           <div className="flex items-center justify-center mt-4">
             <Link to="/login" className="text-sm flex items-center gap-1 hover:underline" style={{ color: 'var(--text-muted)' }} data-testid="back-to-login">
-              <ArrowLeft className="w-3 h-3" /> Back to Login
+              <ArrowLeft className="w-3 h-3" /> Retour à la connexion
             </Link>
           </div>
         </CardContent>

@@ -42,7 +42,7 @@ export default function DailyLogin() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="border max-w-sm" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }} data-testid="daily-login-modal">
-        <DialogTitle className="sr-only">Daily Login Bonus</DialogTitle>
+        <DialogTitle className="sr-only">Bonus quotidien</DialogTitle>
         <div className="text-center space-y-4 py-2">
           {!reward ? (
             <>
@@ -50,12 +50,12 @@ export default function DailyLogin() {
                 <Gift className="w-8 h-8 text-[#FFD700]" />
               </div>
               <h2 className="text-2xl font-bold uppercase tracking-tight" style={{ fontFamily: 'Barlow Condensed, sans-serif' }}>
-                Daily Bonus
+                Bonus quotidien
               </h2>
               <div className="flex items-center justify-center gap-2">
                 <Flame className="w-4 h-4 text-[#FF0055]" />
                 <span className="font-mono-data text-sm">
-                  Streak: <span className="text-[#FF0055] font-bold">{status.streak || 0}</span> days
+                  Série : <span className="text-[#FF0055] font-bold">{status.streak || 0}</span> jours
                 </span>
               </div>
               {/* Streak milestones */}
@@ -63,13 +63,13 @@ export default function DailyLogin() {
                 {streakMilestones.map(m => (
                   <div key={m.day} className={`px-3 py-2 rounded-lg border text-center`}
                     style={{ borderColor: m.active ? 'color-mix(in srgb, var(--accent) 30%, transparent)' : 'var(--border-default)', background: m.active ? 'color-mix(in srgb, var(--accent) 5%, transparent)' : 'var(--bg-input)' }}>
-                    <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Day {m.day}+</p>
+                    <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Jour {m.day}+</p>
                     <p className={`font-mono-data text-sm font-bold`} style={{ color: m.active ? 'var(--accent)' : 'var(--text-muted)' }}>{m.mult}</p>
                   </div>
                 ))}
               </div>
               <div className="rounded-lg p-4 border" style={{ background: 'var(--bg-input)', borderColor: 'var(--border-default)' }}>
-                <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>Today's Reward</p>
+                <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>Récompense du jour</p>
                 <div className="flex items-center justify-center gap-2">
                   <Coins className="w-5 h-5 text-[#FFD700]" />
                   <span className="font-mono-data text-2xl font-bold text-[#FFD700]">+{status.next_reward}</span>
@@ -83,7 +83,7 @@ export default function DailyLogin() {
                 style={{ background: 'var(--accent-gold)', color: '#000' }}
                 data-testid="claim-daily-btn"
               >
-                {status.claimed_today ? 'Already Claimed' : claiming ? 'Claiming...' : 'Claim Bonus'}
+                {status.claimed_today ? 'Déjà réclamé' : claiming ? 'En cours...' : 'Réclamer le bonus'}
               </Button>
             </>
           ) : (
@@ -92,15 +92,15 @@ export default function DailyLogin() {
                 <Coins className="w-8 h-8 text-[#39FF14]" />
               </div>
               <h2 className="text-2xl font-bold uppercase tracking-tight text-[#39FF14]" style={{ fontFamily: 'Barlow Condensed, sans-serif' }}>
-                +{reward.reward} Credits!
+                +{reward.reward} Crédits !
               </h2>
               <div className="flex items-center justify-center gap-2">
                 <Flame className="w-4 h-4 text-[#FF0055]" />
-                <span className="font-mono-data text-sm text-[#FF0055]">{reward.streak} day streak!</span>
+                <span className="font-mono-data text-sm text-[#FF0055]">{reward.streak} jours de série !</span>
               </div>
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Total: <span className="font-mono-data" style={{ color: 'var(--accent-gold)' }}>{reward.total_credits}</span> credits</p>
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Total : <span className="font-mono-data" style={{ color: 'var(--accent-gold)' }}>{reward.total_credits}</span> crédits</p>
               <Button onClick={() => setOpen(false)} className="w-full font-bold uppercase rounded-sm" style={{ background: 'var(--accent)', color: '#000' }} data-testid="close-daily-btn">
-                Let's Go!
+                C'est parti !
               </Button>
             </>
           )}

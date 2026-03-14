@@ -18,9 +18,9 @@ const RARITY_STYLES = {
 };
 
 const PACK_INFO = {
-  bronze: { name: 'Bronze Pack', cards: 1, color: '#CD7F32', desc: '1 Player - Mostly commons' },
-  silver: { name: 'Silver Pack', cards: 2, color: '#C0C0C0', desc: '2 Players - Better odds' },
-  gold: { name: 'Gold Pack', cards: 3, color: '#FFD700', desc: '3 Players - Best chances' },
+  bronze: { name: 'Pack Bronze', cards: 1, color: '#CD7F32', desc: '1 Joueur - Surtout des communs' },
+  silver: { name: 'Pack Argent', cards: 2, color: '#C0C0C0', desc: '2 Joueurs - Meilleures chances' },
+  gold: { name: 'Pack Or', cards: 3, color: '#FFD700', desc: '3 Joueurs - Meilleures probabilités' },
 };
 
 function PlayerRevealCard({ player, index, total, onDone }) {
@@ -170,9 +170,9 @@ export default function PackOpening() {
       <div className="flex items-start justify-between mb-8">
         <div>
           <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
-            Pack Store
+            Boutique Packs
           </h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Open packs to collect players and boost your predictions</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Ouvrez des packs pour collectionner des joueurs et booster vos pronostics</p>
         </div>
         {user && (
           <div className="flex items-center gap-2 px-4 py-2 rounded-lg border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
@@ -248,44 +248,44 @@ export default function PackOpening() {
       {/* Quick Links */}
       <div className="flex gap-3 mb-8">
         <Button variant="outline" className="rounded-sm text-xs" style={{ borderColor: 'var(--border-default)', color: 'var(--text-secondary)' }} onClick={() => navigate('/collection')} data-testid="go-to-collection">
-          View Collection
+          Voir la collection
         </Button>
         <Button variant="outline" className="rounded-sm text-xs" style={{ borderColor: 'var(--border-default)', color: 'var(--text-secondary)' }} onClick={() => navigate('/trading')} data-testid="go-to-trading">
-          Trading Market
+          Marché d'échange
         </Button>
       </div>
 
       {/* Rarity Guide */}
       <Card className="border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
         <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
-          Rarity Guide & Player Boosts
+          Guide des raretés & Boosts joueurs
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {Object.entries(RARITY_STYLES).map(([rarity, style]) => (
             <div key={rarity} className={`${style.bg} ${style.border} border rounded-lg p-3 text-center`}>
               <Badge className={`${style.bg} ${style.text} text-xs mb-2`}>{style.label}</Badge>
               <p className="text-xs text-gray-400">
-                {rarity === 'common' && 'Rating 73-79 | +2-4% boost'}
-                {rarity === 'rare' && 'Rating 80-85 | +6-7% boost'}
-                {rarity === 'epic' && 'Rating 85-88 | +8-9% boost'}
-                {rarity === 'legendary' && 'Rating 90-93 | +10-12% boost'}
-                {rarity === 'icon' && 'Rating 96-98 | +12-15% boost'}
+                {rarity === 'common' && 'Note 73-79 | +2-4% boost'}
+                {rarity === 'rare' && 'Note 80-85 | +6-7% boost'}
+                {rarity === 'epic' && 'Note 85-88 | +8-9% boost'}
+                {rarity === 'legendary' && 'Note 90-93 | +10-12% boost'}
+                {rarity === 'icon' && 'Note 96-98 | +12-15% boost'}
               </p>
             </div>
           ))}
         </div>
         <p className="text-xs text-gray-600 mt-3 text-center">
-          Collected players boost your betting odds on matches involving their team. Max total boost: 25%
+          Les joueurs collectés boostent vos cotes sur les matchs impliquant leur équipe. Boost total max : 25%
         </p>
       </Card>
 
       {/* Results Modal */}
       <Dialog open={showResults} onOpenChange={(v) => { if (allDone) closeResults(); }}>
         <DialogContent className="bg-[#0A0A0A] border-white/10 text-white max-w-lg" data-testid="pack-results-modal">
-          <DialogTitle className="sr-only">Pack Results</DialogTitle>
+          <DialogTitle className="sr-only">Résultats du pack</DialogTitle>
           <div className="text-center space-y-4 py-2">
             <h2 className="text-2xl font-bold uppercase tracking-tight" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: PACK_INFO[openingType]?.color }}>
-              {PACK_INFO[openingType]?.name} Opened!
+              {PACK_INFO[openingType]?.name} ouvert !
             </h2>
             <div className={`grid gap-4 ${results?.length === 1 ? 'grid-cols-1 max-w-[200px] mx-auto' : results?.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
               {results?.map((player, i) => (
@@ -294,7 +294,7 @@ export default function PackOpening() {
             </div>
             {allDone && (
               <Button onClick={closeResults} className="bg-[#39FF14] text-black font-bold uppercase rounded-sm mt-4 hover:bg-[#39FF14]/90 transition-all hover:shadow-[0_0_15px_rgba(57,255,20,0.3)]" data-testid="close-results-btn">
-                Continue
+                Continuer
               </Button>
             )}
           </div>

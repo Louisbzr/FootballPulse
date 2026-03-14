@@ -16,23 +16,23 @@ export default function CommentSection({ matchId, comments, onRefresh }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!message.trim()) return;
-    if (!user) { toast.error('Login to comment'); return; }
+    if (!user) { toast.error('Connectez-vous pour commenter'); return; }
     setLoading(true);
     try {
       await commentsAPI.create(matchId, { message: message.trim(), parent_id: replyTo });
       setMessage('');
       setReplyTo(null);
       onRefresh();
-      toast.success('+5 XP for commenting!');
+      toast.success('+5 XP pour votre commentaire !');
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Error posting comment');
+      toast.error(err.response?.data?.detail || 'Erreur lors de la publication');
     } finally {
       setLoading(false);
     }
   };
 
   const handleLike = async (commentId) => {
-    if (!user) { toast.error('Login to like'); return; }
+    if (!user) { toast.error('Connectez-vous pour liker'); return; }
     try {
       await commentsAPI.like(commentId);
       onRefresh();
@@ -45,10 +45,10 @@ export default function CommentSection({ matchId, comments, onRefresh }) {
   const timeAgo = (dateStr) => {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
-    if (mins < 60) return `${mins}m ago`;
+    if (mins < 60) return `il y a ${mins}m`;
     const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs}h ago`;
-    return `${Math.floor(hrs / 24)}d ago`;
+    if (hrs < 24) return `il y a ${hrs}h`;
+    return `il y a ${Math.floor(hrs / 24)}j`;
   };
 
   return (
@@ -58,8 +58,8 @@ export default function CommentSection({ matchId, comments, onRefresh }) {
         <form onSubmit={handleSubmit} className="space-y-2" data-testid="comment-form">
           {replyTo && (
             <div className="flex items-center gap-2 text-xs text-gray-500">
-              <span>Replying to comment</span>
-              <button type="button" onClick={() => setReplyTo(null)} className="text-[#FF0055] hover:underline">Cancel</button>
+              <span>Réponse au commentaire</span>
+              <button type="button" onClick={() => setReplyTo(null)} className="text-[#FF0055] hover:underline">Annuler</button>
             </div>
           )}
           <div className="flex gap-3">
@@ -71,7 +71,7 @@ export default function CommentSection({ matchId, comments, onRefresh }) {
               <Textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Share your analysis..."
+                placeholder="Partagez votre analyse..."
                 className="min-h-[40px] max-h-[100px] text-sm resize-none"
                 style={{ background: 'var(--bg-input)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }}
                 data-testid="comment-input"
@@ -111,7 +111,7 @@ export default function CommentSection({ matchId, comments, onRefresh }) {
                     {c.likes?.length || 0}
                   </button>
                   <button onClick={() => setReplyTo(c.id)} className="flex items-center gap-1 text-xs hover:text-[#00F0FF]" style={{ color: 'var(--text-muted)' }} data-testid={`reply-btn-${c.id}`}>
-                    <MessageCircle className="w-3 h-3" /> Reply
+                    <MessageCircle className="w-3 h-3" /> Répondre
                   </button>
                 </div>
                 {/* Replies */}
@@ -135,7 +135,7 @@ export default function CommentSection({ matchId, comments, onRefresh }) {
           </div>
         ))}
         {topLevel.length === 0 && (
-          <p className="text-center text-sm py-8" style={{ color: 'var(--text-muted)' }}>No comments yet. Be the first to analyze this match!</p>
+          <p className="text-center text-sm py-8" style={{ color: 'var(--text-muted)' }}>Aucun commentaire. Soyez le premier à analyser ce match !</p>
         )}
       </div>
     </div>

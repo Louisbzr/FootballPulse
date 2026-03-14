@@ -8,13 +8,13 @@ import { Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 const FILTERS = [
-  { value: '', label: 'All' },
-  { value: 'upcoming', label: 'Upcoming' },
-  { value: 'live', label: 'Live' },
-  { value: 'finished', label: 'Finished' },
+  { value: '', label: 'Tous' },
+  { value: 'upcoming', label: 'À venir' },
+  { value: 'live', label: 'En direct' },
+  { value: 'finished', label: 'Terminé' },
 ];
 
-const LEAGUES = ['All', 'Ligue 1', 'Premier League', 'La Liga', 'Champions League', 'Serie A', 'Bundesliga'];
+const LEAGUES = ['Tous', 'Ligue 1', 'Premier League', 'La Liga', 'Champions League', 'Serie A', 'Bundesliga'];
 
 export default function Matches() {
   const { user } = useAuth();
@@ -23,13 +23,13 @@ export default function Matches() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || '');
-  const [leagueFilter, setLeagueFilter] = useState('All');
+  const [leagueFilter, setLeagueFilter] = useState('Tous');
 
   const loadMatches = () => {
     setLoading(true);
     const params = {};
     if (statusFilter) params.status = statusFilter;
-    if (leagueFilter !== 'All') params.league = leagueFilter;
+    if (leagueFilter !== 'Tous') params.league = leagueFilter;
     matchesAPI.list(params).then(r => {
       setMatches(r.data);
       setLoading(false);
@@ -59,21 +59,21 @@ export default function Matches() {
       <div className="flex items-start justify-between mb-2">
         <div>
           <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
-            Matches
+            Matchs
           </h1>
-          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Browse and analyze football matches</p>
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Parcourez et analysez les matchs de football</p>
         </div>
         {user && (
           <Button onClick={handleSync} disabled={syncing} variant="outline"
             className="rounded-sm gap-2" style={{ borderColor: 'var(--accent-secondary)', color: 'var(--accent-secondary)' }}
             data-testid="sync-matches-btn">
             <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
-            {syncing ? 'Syncing...' : 'Sync Live'}
+            {syncing ? 'Synchro...' : 'Sync live'}
           </Button>
         )}
       </div>
       <p className="text-xs mb-8" style={{ color: 'var(--text-muted)' }}>
-        {matches.length} match{matches.length > 1 ? 'es' : ''} found
+        {matches.length} match{matches.length > 1 ? 's' : ''} trouvé{matches.length > 1 ? 's' : ''}
       </p>
 
       {/* Filters */}
@@ -113,7 +113,7 @@ export default function Matches() {
         </div>
       ) : (
         <div className="text-center py-20">
-          <p style={{ color: 'var(--text-secondary)' }}>No matches found</p>
+          <p style={{ color: 'var(--text-secondary)' }}>Aucun match trouvé</p>
           {user && <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Essayez de synchroniser les matchs en direct</p>}
         </div>
       )}

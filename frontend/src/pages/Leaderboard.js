@@ -30,9 +30,9 @@ export default function Leaderboard() {
   return (
     <div className="min-h-screen max-w-5xl mx-auto px-4 py-8" data-testid="leaderboard-page">
       <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase mb-2" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
-        Leaderboard
+        Classement
       </h1>
-      <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>Top predictors ranked by {isWeekly ? 'weekly wins' : 'XP'}</p>
+      <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>Meilleurs pronostiqueurs classés par {isWeekly ? 'victoires de la semaine' : 'XP'}</p>
 
       {/* Tabs */}
       <div className="flex gap-1 p-1 rounded-lg border mb-8 w-fit" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }} data-testid="leaderboard-tabs">
@@ -40,13 +40,13 @@ export default function Leaderboard() {
           className="text-xs rounded-md gap-1.5"
           style={{ color: tab === 'all' ? 'var(--accent)' : 'var(--text-secondary)', background: tab === 'all' ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent' }}
           data-testid="tab-all-time">
-          <Trophy className="w-3.5 h-3.5" /> All Time
+          <Trophy className="w-3.5 h-3.5" /> Tous les temps
         </Button>
         <Button size="sm" variant="ghost" onClick={() => setTab('weekly')}
           className="text-xs rounded-md gap-1.5"
           style={{ color: tab === 'weekly' ? 'var(--accent-secondary)' : 'var(--text-secondary)', background: tab === 'weekly' ? 'color-mix(in srgb, var(--accent-secondary) 10%, transparent)' : 'transparent' }}
           data-testid="tab-weekly">
-          <Calendar className="w-3.5 h-3.5" /> This Week
+          <Calendar className="w-3.5 h-3.5" /> Cette semaine
         </Button>
       </div>
 
@@ -103,11 +103,11 @@ export default function Leaderboard() {
                 isWeekly ? 'grid-cols-[3rem_1fr_5rem_5rem_5rem]' : 'grid-cols-[3rem_1fr_5rem_5rem_5rem] md:grid-cols-[3rem_1fr_6rem_6rem_6rem_5rem]'
               }`} style={{ color: 'var(--text-muted)', borderColor: 'var(--border-default)' }}>
                 <span>#</span>
-                <span>Player</span>
-                <span className="text-right">{isWeekly ? 'Wins' : 'XP'}</span>
-                <span className="text-right">{isWeekly ? 'Bets' : 'Wins'}</span>
-                <span className="text-right">Rate</span>
-                {!isWeekly && <span className="text-right hidden md:block">Credits</span>}
+                <span>Joueur</span>
+                <span className="text-right">{isWeekly ? 'Victoires' : 'XP'}</span>
+                <span className="text-right">{isWeekly ? 'Paris' : 'Victoires'}</span>
+                <span className="text-right">Taux</span>
+                {!isWeekly && <span className="text-right hidden md:block">Crédits</span>}
               </div>
               {rest.map((l) => (
                 <div key={l.id} className={`grid gap-2 px-4 py-3 items-center border-b hover:opacity-90 transition-colors ${

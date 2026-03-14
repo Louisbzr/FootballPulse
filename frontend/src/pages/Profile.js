@@ -33,9 +33,9 @@ export default function Profile() {
     try {
       await authAPI.updateProfile({ username: form.username, favorite_team: form.favorite_team || null });
       await refreshUser();
-      toast.success('Profile updated!');
+      toast.success('Profil mis à jour !');
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Update failed');
+      toast.error(err.response?.data?.detail || 'Échec de la mise à jour');
     } finally {
       setLoading(false);
     }
@@ -43,14 +43,14 @@ export default function Profile() {
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
-    if (pwdForm.new_pwd.length < 6) { toast.error('Password must be at least 6 characters'); return; }
+    if (pwdForm.new_pwd.length < 6) { toast.error('Le mot de passe doit contenir au moins 6 caractères'); return; }
     setPwdLoading(true);
     try {
       await authAPI.changePassword(pwdForm.current, pwdForm.new_pwd);
-      toast.success('Password changed!');
+      toast.success('Mot de passe modifié !');
       setPwdForm({ current: '', new_pwd: '' });
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Error');
+      toast.error(err.response?.data?.detail || 'Erreur');
     } finally {
       setPwdLoading(false);
     }
@@ -61,7 +61,7 @@ export default function Profile() {
   return (
     <div className="min-h-screen max-w-2xl mx-auto px-4 py-8" data-testid="profile-page">
       <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase mb-8" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
-        Profile
+        Profil
       </h1>
 
       {/* Profile Card */}
@@ -82,11 +82,11 @@ export default function Profile() {
         <CardContent className="p-6">
           <form onSubmit={handleSubmit} className="space-y-5" data-testid="profile-form">
             <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Email</Label>
+              <Label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>E-mail</Label>
               <Input value={user.email} disabled className="opacity-60" style={{ background: 'var(--bg-input)', borderColor: 'var(--border-default)', color: 'var(--text-muted)' }} />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Username</Label>
+              <Label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Nom d'utilisateur</Label>
               <Input
                 value={form.username}
                 onChange={e => setForm({ ...form, username: e.target.value })}
@@ -95,10 +95,10 @@ export default function Profile() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Favorite Team</Label>
+              <Label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Équipe favorite</Label>
               <Select value={form.favorite_team} onValueChange={v => setForm({ ...form, favorite_team: v })}>
                 <SelectTrigger style={{ background: 'var(--bg-input)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }} data-testid="profile-team-select">
-                  <SelectValue placeholder="Select a team" />
+                  <SelectValue placeholder="Choisir une équipe" />
                 </SelectTrigger>
                 <SelectContent style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
                   {teams.map(t => (
@@ -108,7 +108,7 @@ export default function Profile() {
               </Select>
             </div>
             <Button type="submit" disabled={loading} className="font-bold uppercase tracking-wider rounded-sm" style={{ background: 'var(--accent)', color: '#000' }} data-testid="profile-save-btn">
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Save Changes</>}
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Sauvegarder</>}
             </Button>
           </form>
         </CardContent>
@@ -117,16 +117,16 @@ export default function Profile() {
       {/* Stats */}
       <Card className="border p-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
         <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
-          Account Info
+          Infos du compte
         </h3>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Credits</p>
+            <p className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Crédits</p>
             <p className="font-mono-data text-lg" style={{ color: 'var(--accent-gold)' }}>{user.virtual_credits?.toLocaleString()}</p>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Member Since</p>
-            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{new Date(user.created_at).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</p>
+            <p className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Membre depuis</p>
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{new Date(user.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</p>
           </div>
           <div>
             <p className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Badges</p>
@@ -142,23 +142,23 @@ export default function Profile() {
       {/* Change Password */}
       <Card className="border p-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
         <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
-          <Lock className="w-4 h-4 inline mr-2" /> Change Password
+          <Lock className="w-4 h-4 inline mr-2" /> Changer le mot de passe
         </h3>
         <form onSubmit={handleChangePassword} className="space-y-4" data-testid="change-password-form">
           <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Current Password</Label>
+            <Label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Mot de passe actuel</Label>
             <Input type="password" value={pwdForm.current} onChange={e => setPwdForm({ ...pwdForm, current: e.target.value })}
               style={{ background: 'var(--bg-input)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }}
               required data-testid="current-password-input" />
           </div>
           <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>New Password</Label>
+            <Label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Nouveau mot de passe</Label>
             <Input type="password" value={pwdForm.new_pwd} onChange={e => setPwdForm({ ...pwdForm, new_pwd: e.target.value })}
               style={{ background: 'var(--bg-input)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }}
-              placeholder="Min. 6 characters" required data-testid="new-password-input" />
+              placeholder="Min. 6 caractères" required data-testid="new-password-input" />
           </div>
           <Button type="submit" disabled={pwdLoading} variant="outline" className="rounded-sm" style={{ borderColor: 'var(--border-default)', color: 'var(--text-primary)' }} data-testid="change-password-btn">
-            {pwdLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Lock className="w-4 h-4 mr-2" /> Change Password</>}
+            {pwdLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Lock className="w-4 h-4 mr-2" /> Changer le mot de passe</>}
           </Button>
         </form>
       </Card>

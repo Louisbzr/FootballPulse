@@ -66,21 +66,21 @@ export default function Dashboard() {
   })).reverse();
 
   const statCards = [
-    { label: 'Credits', value: data.user?.virtual_credits?.toLocaleString(), icon: Coins, color: 'var(--accent-gold)' },
-    { label: 'Win Rate', value: `${stats.win_rate}%`, icon: TrendingUp, color: 'var(--accent)' },
-    { label: 'Total Bets', value: stats.total_bets, icon: Target, color: 'var(--accent-secondary)' },
+    { label: 'Crédits', value: data.user?.virtual_credits?.toLocaleString(), icon: Coins, color: 'var(--accent-gold)' },
+    { label: 'Taux de réussite', value: `${stats.win_rate}%`, icon: TrendingUp, color: 'var(--accent)' },
+    { label: 'Total paris', value: stats.total_bets, icon: Target, color: 'var(--accent-secondary)' },
     { label: 'Collection', value: `${collectionCount}/40`, icon: BookOpen, color: '#A855F7' },
-    { label: 'Streak', value: `${dailyStatus?.streak || 0}d`, icon: Flame, color: 'var(--accent-danger)' },
-    { label: 'Comments', value: stats.comments, icon: MessageCircle, color: 'var(--text-muted)' },
+    { label: 'Série', value: `${dailyStatus?.streak || 0}j`, icon: Flame, color: 'var(--accent-danger)' },
+    { label: 'Commentaires', value: stats.comments, icon: MessageCircle, color: 'var(--text-muted)' },
   ];
 
   return (
     <div className="min-h-screen max-w-7xl mx-auto px-4 py-8" data-testid="dashboard-page">
       <div className="mb-8">
         <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
-          Dashboard
+          Tableau de bord
         </h1>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Welcome back, <span style={{ color: 'var(--text-primary)' }}>{data.user?.username}</span></p>
+        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Bon retour, <span style={{ color: 'var(--text-primary)' }}>{data.user?.username}</span></p>
       </div>
 
       {/* XP Progress */}
@@ -99,7 +99,7 @@ export default function Dashboard() {
           </div>
           {xp_progress.next_level && (
             <Badge className="text-xs rounded-sm" style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}>
-              Next: {xp_progress.next_level}
+              Suivant : {xp_progress.next_level}
             </Badge>
           )}
         </div>
@@ -123,7 +123,7 @@ export default function Dashboard() {
         {/* Bet History Chart */}
         <Card className="lg:col-span-2 border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }} data-testid="bet-history-chart">
           <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
-            Bet Performance
+            Performance des paris
           </h3>
           {betHistory.length > 0 ? (
             <ResponsiveContainer width="100%" height={200}>
@@ -136,7 +136,7 @@ export default function Dashboard() {
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-sm py-10 text-center" style={{ color: 'var(--text-muted)' }}>No bet history yet</p>
+            <p className="text-sm py-10 text-center" style={{ color: 'var(--text-muted)' }}>Aucun historique de paris</p>
           )}
         </Card>
 
@@ -159,7 +159,7 @@ export default function Dashboard() {
                     <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{info.name}</p>
                     <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{info.description}</p>
                   </div>
-                  {earned && <Badge className="text-[10px] rounded-sm" style={{ background: 'color-mix(in srgb, var(--accent) 10%, transparent)', color: 'var(--accent)' }}>Earned</Badge>}
+                  {earned && <Badge className="text-[10px] rounded-sm" style={{ background: 'color-mix(in srgb, var(--accent) 10%, transparent)', color: 'var(--accent)' }}>Obtenu</Badge>}
                 </div>
               );
             })}
@@ -171,7 +171,7 @@ export default function Dashboard() {
       {recent_bets?.length > 0 && (
         <Card className="border p-5 mt-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }} data-testid="recent-bets-list">
           <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
-            Recent Predictions
+            Pronostics récents
           </h3>
           <div className="space-y-2">
             {recent_bets.map(bet => (
