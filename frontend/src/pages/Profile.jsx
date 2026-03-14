@@ -9,15 +9,17 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { User, Save, Loader2, Zap } from 'lucide-react';
+import { User, Save, Loader2, Zap, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Profile() {
   const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ username: '', favorite_team: '' });
+  const [pwdForm, setPwdForm] = useState({ current: '', new_pwd: '' });
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [pwdLoading, setPwdLoading] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -31,11 +33,26 @@ export default function Profile() {
     try {
       await authAPI.updateProfile({ username: form.username, favorite_team: form.favorite_team || null });
       await refreshUser();
-      toast.success('Profile updated!');
+      toast.success('Profil mis à jour !');
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Update failed');
+      toast.error(err.response?.data?.detail || 'Échec de la mise à jour');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    if (pwdForm.new_pwd.length < 6) { toast.error('Le mot de passe doit contenir au moins 6 caractères'); return; }
+    setPwdLoading(true);
+    try {
+      await authAPI.changePassword(pwdForm.current, pwdForm.new_pwd);
+      toast.success('Mot de passe modifié !');
+      setPwdForm({ current: '', new_pwd: '' });
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Erreur');
+    } finally {
+      setPwdLoading(false);
     }
   };
 
@@ -43,83 +60,107 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen max-w-2xl mx-auto px-4 py-8" data-testid="profile-page">
-      <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase text-white mb-8" style={{ fontFamily: 'Barlow Condensed, sans-serif' }}>
-        Profile
+      <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase mb-8" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
+        Profil
       </h1>
 
       {/* Profile Card */}
-      <Card className="bg-[#121212] border-white/5 mb-6">
-        <div className="p-6 flex items-center gap-4 border-b border-white/5">
-          <Avatar className="w-16 h-16 border-2 border-[#39FF14]/20">
+      <Card className="border mb-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
+        <div className="p-6 flex items-center gap-4 border-b" style={{ borderColor: 'var(--border-default)' }}>
+          <Avatar className="w-16 h-16 border-2" style={{ borderColor: 'color-mix(in srgb, var(--accent) 20%, transparent)' }}>
             <AvatarImage src={user.avatar} />
-            <AvatarFallback className="bg-[#1E1E1E] text-[#39FF14] text-xl">{user.username?.[0]?.toUpperCase()}</AvatarFallback>
+            <AvatarFallback className="text-xl" style={{ background: 'var(--bg-elevated)', color: 'var(--accent)' }}>{user.username?.[0]?.toUpperCase()}</AvatarFallback>
           </Avatar>
           <div>
-            <p className="text-xl font-bold text-white">{user.username}</p>
+            <p className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{user.username}</p>
             <div className="flex items-center gap-2 mt-1">
-              <Badge className="bg-[#39FF14]/10 text-[#39FF14] text-xs rounded-sm"><Zap className="w-3 h-3 mr-1" />{user.level}</Badge>
-              <span className="text-xs text-gray-500 font-mono-data">{user.xp} XP</span>
+              <Badge className="text-xs rounded-sm" style={{ background: 'color-mix(in srgb, var(--accent) 10%, transparent)', color: 'var(--accent)' }}><Zap className="w-3 h-3 mr-1" />{user.level}</Badge>
+              <span className="text-xs font-mono-data" style={{ color: 'var(--text-muted)' }}>{user.xp} XP</span>
             </div>
           </div>
         </div>
         <CardContent className="p-6">
           <form onSubmit={handleSubmit} className="space-y-5" data-testid="profile-form">
             <div className="space-y-2">
-              <Label className="text-gray-400 text-xs uppercase tracking-wider">Email</Label>
-              <Input value={user.email} disabled className="bg-black/30 border-white/5 text-gray-500" />
+              <Label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>E-mail</Label>
+              <Input value={user.email} disabled className="opacity-60" style={{ background: 'var(--bg-input)', borderColor: 'var(--border-default)', color: 'var(--text-muted)' }} />
             </div>
             <div className="space-y-2">
-              <Label className="text-gray-400 text-xs uppercase tracking-wider">Username</Label>
+              <Label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Nom d'utilisateur</Label>
               <Input
                 value={form.username}
                 onChange={e => setForm({ ...form, username: e.target.value })}
-                className="bg-black/50 border-white/10 text-white"
+                style={{ background: 'var(--bg-input)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }}
                 data-testid="profile-username-input"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-gray-400 text-xs uppercase tracking-wider">Favorite Team</Label>
+              <Label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Équipe favorite</Label>
               <Select value={form.favorite_team} onValueChange={v => setForm({ ...form, favorite_team: v })}>
-                <SelectTrigger className="bg-black/50 border-white/10 text-white" data-testid="profile-team-select">
-                  <SelectValue placeholder="Select a team" />
+                <SelectTrigger style={{ background: 'var(--bg-input)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }} data-testid="profile-team-select">
+                  <SelectValue placeholder="Choisir une équipe" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#121212] border-white/10">
+                <SelectContent style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
                   {teams.map(t => (
-                    <SelectItem key={t.id} value={t.name} className="text-white hover:bg-white/5 focus:bg-white/5">{t.name}</SelectItem>
+                    <SelectItem key={t.id} value={t.name} style={{ color: 'var(--text-primary)' }}>{t.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <Button type="submit" disabled={loading} className="bg-[#39FF14] text-black font-bold uppercase tracking-wider hover:bg-[#39FF14]/90 rounded-sm" data-testid="profile-save-btn">
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Save Changes</>}
+            <Button type="submit" disabled={loading} className="font-bold uppercase tracking-wider rounded-sm" style={{ background: 'var(--accent)', color: '#000' }} data-testid="profile-save-btn">
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Sauvegarder</>}
             </Button>
           </form>
         </CardContent>
       </Card>
 
       {/* Stats */}
-      <Card className="bg-[#121212] border-white/5 p-6">
-        <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4" style={{ fontFamily: 'Barlow Condensed, sans-serif' }}>
-          Account Info
+      <Card className="border p-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
+        <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
+          Infos du compte
         </h3>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">Credits</p>
-            <p className="font-mono-data text-lg text-[#FFD700]">{user.virtual_credits?.toLocaleString()}</p>
+            <p className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Crédits</p>
+            <p className="font-mono-data text-lg" style={{ color: 'var(--accent-gold)' }}>{user.virtual_credits?.toLocaleString()}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">Member Since</p>
-            <p className="text-sm text-gray-300">{new Date(user.created_at).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</p>
+            <p className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Membre depuis</p>
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{new Date(user.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">Badges</p>
-            <p className="font-mono-data text-lg text-white">{user.badges?.length || 0}</p>
+            <p className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Badges</p>
+            <p className="font-mono-data text-lg" style={{ color: 'var(--text-primary)' }}>{user.badges?.length || 0}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">Level</p>
-            <p className="text-sm text-[#39FF14] font-medium">{user.level}</p>
+            <p className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Level</p>
+            <p className="text-sm font-medium" style={{ color: 'var(--accent)' }}>{user.level}</p>
           </div>
         </div>
+      </Card>
+
+      {/* Change Password */}
+      <Card className="border p-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
+        <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
+          <Lock className="w-4 h-4 inline mr-2" /> Changer le mot de passe
+        </h3>
+        <form onSubmit={handleChangePassword} className="space-y-4" data-testid="change-password-form">
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Mot de passe actuel</Label>
+            <Input type="password" value={pwdForm.current} onChange={e => setPwdForm({ ...pwdForm, current: e.target.value })}
+              style={{ background: 'var(--bg-input)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }}
+              required data-testid="current-password-input" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Nouveau mot de passe</Label>
+            <Input type="password" value={pwdForm.new_pwd} onChange={e => setPwdForm({ ...pwdForm, new_pwd: e.target.value })}
+              style={{ background: 'var(--bg-input)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }}
+              placeholder="Min. 6 caractères" required data-testid="new-password-input" />
+          </div>
+          <Button type="submit" disabled={pwdLoading} variant="outline" className="rounded-sm" style={{ borderColor: 'var(--border-default)', color: 'var(--text-primary)' }} data-testid="change-password-btn">
+            {pwdLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Lock className="w-4 h-4 mr-2" /> Changer le mot de passe</>}
+          </Button>
+        </form>
       </Card>
     </div>
   );

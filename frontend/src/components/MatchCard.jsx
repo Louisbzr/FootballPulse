@@ -1,83 +1,63 @@
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, Clock } from 'lucide-react';
-
-const STATUS_STYLES = {
-  finished: { label: 'FT', class: 'bg-white/10 text-gray-300' },
-  upcoming: { label: 'Upcoming', class: 'bg-[#00F0FF]/10 text-[#00F0FF]' },
-  live: { label: 'LIVE', class: 'bg-[#FF0055]/10 text-[#FF0055] animate-pulse' },
-};
+import { Timer } from 'lucide-react';
 
 export default function MatchCard({ match }) {
-  const status = STATUS_STYLES[match.status] || STATUS_STYLES.upcoming;
   const matchDate = new Date(match.date);
+  const isLive = match.status === 'live';
+  const isFinished = match.status === 'finished';
 
   return (
-    <Link to={`/matches/${match.id}`} data-testid={`match-card-${match.id}`}>
-      <Card className="bg-[#121212] border-white/5 hover:border-[#39FF14]/20 transition-all duration-300 group overflow-hidden cursor-pointer">
-        <div className="p-4">
+    <Link to={`/matches/${match.id}`}>
+      <Card className={`border overflow-hidden transition-all duration-300 group ${
+        isLive ? 'border-[#FF0055]/30' : ''
+      }`} style={{ background: 'var(--bg-card)', borderColor: isLive ? undefined : 'var(--border-default)', boxShadow: 'var(--shadow-card)' }} data-testid={`match-card-${match.id}`}>
+        <div className="p-4 space-y-3">
           {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <Badge className={`${status.class} text-xs font-bold uppercase tracking-wider rounded-sm`} data-testid={`match-status-${match.id}`}>
-              {status.label}
+          <div className="flex items-center justify-between">
+            <Badge variant="outline" className="text-[10px] rounded-sm" style={{ borderColor: 'var(--border-default)', color: 'var(--text-secondary)' }}>{match.league}</Badge>
+            <Badge className={`text-[10px] rounded-sm uppercase font-bold tracking-wider ${
+              isLive ? 'bg-[#FF0055]/10 text-[#FF0055] animate-pulse' : isFinished ? 'bg-white/5 text-gray-400' : 'bg-[#00F0FF]/10 text-[#00F0FF]'
+            }`} data-testid={`match-status-${match.id}`}>
+              {isLive ? (
+                <span className="flex items-center gap-1">
+                  <Timer className="w-3 h-3" />
+                  {match.elapsed ? `${match.elapsed}'` : 'LIVE'}
+                </span>
+              ) : isFinished ? 'FT' : matchDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
             </Badge>
-            <span className="text-xs text-gray-500 flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
-              {matchDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-            </span>
           </div>
 
           {/* Teams & Score */}
-          <div className="flex items-center justify-between gap-3">
-            {/* Home */}
-            <div className="flex-1 text-center">
-              <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-[#1E1E1E] border border-white/10 flex items-center justify-center overflow-hidden">
-                <img src={match.home_team?.logo} alt={match.home_team?.short} className="w-6 h-6" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="w-8 h-8 rounded-lg border flex items-center justify-center overflow-hidden shrink-0" style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border-default)' }}>
+                {match.home_team?.logo ? <img src={match.home_team.logo} alt="" className="w-5 h-5" /> : <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{match.home_team?.short}</span>}
               </div>
-              <p className="text-sm font-semibold text-white truncate">{match.home_team?.short}</p>
+              <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{match.home_team?.name}</p>
             </div>
-
-            {/* Score */}
-            <div className="flex items-center gap-2" data-testid={`match-score-${match.id}`}>
-              {match.status === 'finished' || match.status === 'live' ? (
-                <>
-                  <span className="text-2xl font-black text-white font-mono-data">{match.score?.home}</span>
-                  <span className="text-gray-600 text-sm">-</span>
-                  <span className="text-2xl font-black text-white font-mono-data">{match.score?.away}</span>
-                </>
+            <div className="px-3 text-center shrink-0">
+              {isFinished || isLive ? (
+                <span className="font-mono-data text-lg font-black" style={{ color: 'var(--text-primary)' }}>{match.score?.home} - {match.score?.away}</span>
               ) : (
-                <div className="text-center">
-                  <Clock className="w-4 h-4 text-gray-500 mx-auto mb-1" />
-                  <span className="text-xs text-gray-500 font-mono-data">
-                    {matchDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
+                <span className="text-xs font-mono-data" style={{ color: 'var(--text-muted)' }}>{matchDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
               )}
             </div>
-
-            {/* Away */}
-            <div className="flex-1 text-center">
-              <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-[#1E1E1E] border border-white/10 flex items-center justify-center overflow-hidden">
-                <img src={match.away_team?.logo} alt={match.away_team?.short} className="w-6 h-6" />
+            <div className="flex items-center gap-3 flex-1 min-w-0 justify-end">
+              <p className="text-sm font-medium truncate text-right" style={{ color: 'var(--text-primary)' }}>{match.away_team?.name}</p>
+              <div className="w-8 h-8 rounded-lg border flex items-center justify-center overflow-hidden shrink-0" style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border-default)' }}>
+                {match.away_team?.logo ? <img src={match.away_team.logo} alt="" className="w-5 h-5" /> : <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{match.away_team?.short}</span>}
               </div>
-              <p className="text-sm font-semibold text-white truncate">{match.away_team?.short}</p>
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
-            <span className="flex items-center gap-1">
-              <MapPin className="w-3 h-3" />
-              {match.stadium}
-            </span>
-            <Badge variant="outline" className="text-[10px] border-white/10 text-gray-500 rounded-sm">
-              {match.league}
-            </Badge>
-          </div>
+          {/* Stadium */}
+          <p className="text-[10px] truncate text-center" style={{ color: 'var(--text-muted)' }}>{match.stadium}</p>
         </div>
-        {/* Hover accent */}
-        <div className="h-0.5 bg-gradient-to-r from-transparent via-[#39FF14]/0 to-transparent group-hover:via-[#39FF14]/50 transition-all duration-500" />
+        <div className={`h-0.5 transition-all duration-500 ${
+          isLive ? 'bg-[#FF0055]' : 'opacity-0 group-hover:opacity-100'
+        }`} style={!isLive ? { background: `linear-gradient(90deg, transparent, var(--accent), transparent)` } : {}} />
       </Card>
     </Link>
   );

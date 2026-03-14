@@ -33,74 +33,74 @@ export default function Predictions() {
     <div className="min-h-screen max-w-7xl mx-auto px-4 py-8" data-testid="predictions-page">
       <div className="flex items-start justify-between mb-8">
         <div>
-          <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase text-white" style={{ fontFamily: 'Barlow Condensed, sans-serif' }}>
-            Predictions
+          <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
+            Pronostics
           </h1>
-          <p className="text-gray-500 text-sm mt-1">Place virtual bets and earn credits</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Placez vos paris virtuels et gagnez des crédits</p>
         </div>
         {user && (
-          <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#121212] border border-white/5">
-            <Coins className="w-4 h-4 text-[#FFD700]" />
-            <span className="font-mono-data text-lg text-[#FFD700]" data-testid="prediction-credits">{user.virtual_credits?.toLocaleString()}</span>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-lg border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
+            <Coins className="w-4 h-4" style={{ color: 'var(--accent-gold)' }} />
+            <span className="font-mono-data text-lg" style={{ color: 'var(--accent-gold)' }} data-testid="prediction-credits">{user.virtual_credits?.toLocaleString()}</span>
           </div>
         )}
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 text-[#39FF14] animate-spin" /></div>
+        <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--accent)' }} /></div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Matches to bet on */}
           <div className="lg:col-span-2 space-y-4">
-            <h2 className="text-lg font-bold text-white uppercase tracking-wider" style={{ fontFamily: 'Barlow Condensed, sans-serif' }}>
-              <Target className="w-4 h-4 inline mr-2 text-[#39FF14]" />
-              Available Matches
+            <h2 className="text-lg font-bold uppercase tracking-wider" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
+              <Target className="w-4 h-4 inline mr-2" style={{ color: 'var(--accent)' }} />
+              Matchs disponibles
             </h2>
             {matches.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 stagger-children">
                 {matches.map(m => <MatchCard key={m.id} match={m} />)}
               </div>
             ) : (
-              <Card className="bg-[#121212] border-white/5 p-10 text-center">
-                <p className="text-gray-500">No upcoming matches available</p>
+              <Card className="border p-10 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
+                <p style={{ color: 'var(--text-secondary)' }}>Aucun match à venir disponible</p>
               </Card>
             )}
           </div>
 
           {/* My Bets */}
           <div className="space-y-4">
-            <h2 className="text-lg font-bold text-white uppercase tracking-wider" style={{ fontFamily: 'Barlow Condensed, sans-serif' }}>
-              <TrendingUp className="w-4 h-4 inline mr-2 text-[#00F0FF]" />
-              My Predictions
+            <h2 className="text-lg font-bold uppercase tracking-wider" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
+              <TrendingUp className="w-4 h-4 inline mr-2" style={{ color: 'var(--accent-secondary)' }} />
+              Mes pronostics
             </h2>
             {!user ? (
-              <Card className="bg-[#121212] border-white/5 p-6 text-center">
-                <p className="text-gray-500 text-sm mb-3">Login to see your predictions</p>
-                <Link to="/login" className="text-[#39FF14] text-sm hover:underline">Sign in</Link>
+              <Card className="border p-6 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
+                <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>Connectez-vous pour voir vos pronostics</p>
+                <Link to="/login" className="text-sm hover:underline" style={{ color: 'var(--accent)' }}>Se connecter</Link>
               </Card>
             ) : myBets.length > 0 ? (
               <div className="space-y-2">
                 {myBets.slice(0, 10).map(bet => (
-                  <Card key={bet.id} className="bg-[#121212] border-white/5 p-3" data-testid={`bet-${bet.id}`}>
+                  <Card key={bet.id} className="border p-3" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }} data-testid={`bet-${bet.id}`}>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-gray-400">{bet.match_label}</span>
+                      <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{bet.match_label}</span>
                       <Badge className={`${STATUS_STYLES[bet.status]} text-[10px] rounded-sm`}>{bet.status}</Badge>
                     </div>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-white capitalize">{bet.bet_type.replace(/_/g, ' ')}: <span className="text-gray-300">{bet.prediction}</span></p>
+                        <p className="text-sm capitalize" style={{ color: 'var(--text-primary)' }}>{bet.bet_type.replace(/_/g, ' ')}: <span style={{ color: 'var(--text-secondary)' }}>{bet.prediction}</span></p>
                       </div>
                       <div className="text-right">
-                        <p className="font-mono-data text-xs text-gray-400">{bet.amount} <span className="text-[#FFD700]">x{bet.odds}</span></p>
-                        <p className="font-mono-data text-xs text-[#39FF14]">{bet.potential_win}</p>
+                        <p className="font-mono-data text-xs" style={{ color: 'var(--text-secondary)' }}>{bet.amount} <span style={{ color: 'var(--accent-gold)' }}>x{bet.odds}</span></p>
+                        <p className="font-mono-data text-xs" style={{ color: 'var(--accent)' }}>{bet.potential_win}</p>
                       </div>
                     </div>
                   </Card>
                 ))}
               </div>
             ) : (
-              <Card className="bg-[#121212] border-white/5 p-6 text-center">
-                <p className="text-gray-500 text-sm">No predictions yet. Click a match to get started!</p>
+              <Card className="border p-6 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Aucun pronostic. Cliquez sur un match pour commencer !</p>
               </Card>
             )}
           </div>
