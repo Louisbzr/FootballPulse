@@ -220,8 +220,65 @@ async def buy_trade(trade_id: str, user=Depends(get_current_user)):
     await db.users.update_one({"id": trade["seller_id"]}, {"$inc": {"virtual_credits": trade["asking_price"]}})
     await db.user_players.insert_one({"id": str(uuid.uuid4()), "user_id": user["id"], "player_id": trade["player_id"], "obtained_at": datetime.now(timezone.utc).isoformat(), "source": "trade"})
     await db.trades.update_one({"id": trade_id}, {"$set": {"status": "sold", "buyer_id": user["id"], "buyer_name": user["username"]}})
+    # Record price history
+    await db.price_history.insert_one({
+        "player_id": trade["player_id"],
+        "player_name": trade["player_name"],
+        "player_rarity": trade["player_rarity"],
+        "price": trade["asking_price"],
+        "date": datetime.now(timezone.utc).isoformat(),
+    })
+    try:
+        await send_notification(trade["seller_id"], "trade_bought", {
+            "buyer_name": user["username"],
+            "player_name": trade["player_name"],
+            "price": trade["asking_price"],
+        })
+    except Exception:
+        pass
     await add_xp(user["id"], 5)
     return {"message": f"Purchased {trade['player_name']} for {trade['asking_price']} credits"}
+
+@router.get("/trades/price-history/{player_id}")
+async def get_price_history(player_id: str):
+    history = await db.price_history.find(
+        {"player_id": player_id}, {"_id": 0}
+    ).sort("date", -1).to_list(50)
+    return history
+
+@router.get("/trades/market-overview")
+async def market_overview():
+    """Get average prices by player for market overview."""
+    pipeline = [
+        {"$group": {
+            "_id": "$player_id",
+            "player_name": {"$first": "$player_name"},
+            "player_rarity": {"$first": "$player_rarity"},
+            "avg_price": {"$avg": "$price"},
+            "min_price": {"$min": "$price"},
+            "max_price": {"$max": "$price"},
+            "total_trades": {"$sum": 1},
+            "last_price": {"$last": "$price"},
+            "last_date": {"$last": "$date"},
+        }},
+        {"$sort": {"total_trades": -1}},
+        {"$limit": 20},
+    ]
+    results = await db.price_history.aggregate(pipeline).to_list(20)
+    return [
+        {
+            "player_id": r["_id"],
+            "player_name": r["player_name"],
+            "player_rarity": r["player_rarity"],
+            "avg_price": round(r["avg_price"]),
+            "min_price": r["min_price"],
+            "max_price": r["max_price"],
+            "last_price": r["last_price"],
+            "total_trades": r["total_trades"],
+        }
+        for r in results
+    ]
+
 
 @router.post("/trades/{trade_id}/cancel")
 async def cancel_trade(trade_id: str, user=Depends(get_current_user)):

@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Coins, ArrowRightLeft, Loader2, Star, ShoppingCart, X, Plus } from 'lucide-react';
+import { Coins, ArrowRightLeft, Loader2, Star, ShoppingCart, X, Plus, TrendingUp, BarChart3 } from 'lucide-react';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { toast } from 'sonner';
 
 const RARITY_STYLES = {
@@ -26,6 +27,10 @@ export default function Trading() {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [askingPrice, setAskingPrice] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [tab, setTab] = useState('market'); // 'market' | 'trends'
+  const [marketData, setMarketData] = useState([]);
+  const [selectedHistory, setSelectedHistory] = useState(null);
+  const [priceHistory, setPriceHistory] = useState([]);
 
   const loadData = async () => {
     try {
@@ -40,6 +45,22 @@ export default function Trading() {
   };
 
   useEffect(() => { loadData(); }, [user]);
+
+  useEffect(() => {
+    if (tab === 'trends') {
+      tradesAPI.marketOverview().then(r => setMarketData(r.data)).catch(() => {});
+    }
+  }, [tab]);
+
+  const loadPriceHistory = async (playerId) => {
+    setSelectedHistory(playerId);
+    try {
+      const res = await tradesAPI.priceHistory(playerId);
+      setPriceHistory(res.data.reverse());
+    } catch {
+      setPriceHistory([]);
+    }
+  };
 
   const handleCreateTrade = async () => {
     if (!selectedPlayer || !askingPrice) return;
@@ -126,8 +147,101 @@ export default function Trading() {
         </div>
       </div>
 
+      {/* Tabs */}
+      <div className="flex gap-1 p-1 rounded-lg border mb-8 w-fit" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }} data-testid="trading-tabs">
+        <Button size="sm" variant="ghost" onClick={() => setTab('market')}
+          className="text-xs rounded-md gap-1.5"
+          style={{ color: tab === 'market' ? 'var(--accent-secondary)' : 'var(--text-secondary)', background: tab === 'market' ? 'color-mix(in srgb, var(--accent-secondary) 10%, transparent)' : 'transparent' }}
+          data-testid="tab-market">
+          <ShoppingCart className="w-3.5 h-3.5" /> Market
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => setTab('trends')}
+          className="text-xs rounded-md gap-1.5"
+          style={{ color: tab === 'trends' ? 'var(--accent-gold)' : 'var(--text-secondary)', background: tab === 'trends' ? 'color-mix(in srgb, var(--accent-gold) 10%, transparent)' : 'transparent' }}
+          data-testid="tab-trends">
+          <BarChart3 className="w-3.5 h-3.5" /> Price Trends
+        </Button>
+      </div>
+
+      {tab === 'trends' && (
+        <div className="space-y-6 mb-8" data-testid="market-trends">
+          {/* Price History Chart */}
+          {selectedHistory && priceHistory.length > 0 && (
+            <Card className="border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold uppercase tracking-wider" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
+                  Price History - {priceHistory[0]?.player_name}
+                </h3>
+                <Button size="sm" variant="ghost" onClick={() => { setSelectedHistory(null); setPriceHistory([]); }}
+                  className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+              <ResponsiveContainer width="100%" height={200}>
+                <AreaChart data={priceHistory.map((p, i) => ({ name: `#${i + 1}`, price: p.price }))}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-default)" />
+                  <XAxis dataKey="name" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} />
+                  <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} />
+                  <Tooltip contentStyle={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-default)', borderRadius: 8, fontSize: 12, color: 'var(--text-primary)' }} />
+                  <Area type="monotone" dataKey="price" stroke="var(--neon-cyan)" fill="var(--neon-cyan)" fillOpacity={0.1} strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </Card>
+          )}
+
+          {/* Market Overview Table */}
+          <Card className="border overflow-hidden" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }} data-testid="market-overview-table">
+            <div className="p-4 border-b" style={{ borderColor: 'var(--border-default)' }}>
+              <h3 className="text-sm font-bold uppercase tracking-wider" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
+                <TrendingUp className="w-4 h-4 inline mr-2" style={{ color: 'var(--accent-gold)' }} /> Market Overview
+              </h3>
+            </div>
+            {marketData.length > 0 ? (
+              <div>
+                <div className="grid grid-cols-[1fr_4rem_4rem_4rem_4rem_3rem] gap-2 px-4 py-2 text-[10px] uppercase tracking-wider border-b"
+                  style={{ color: 'var(--text-muted)', borderColor: 'var(--border-default)' }}>
+                  <span>Player</span>
+                  <span className="text-right">Avg</span>
+                  <span className="text-right">Min</span>
+                  <span className="text-right">Max</span>
+                  <span className="text-right">Last</span>
+                  <span className="text-right">Txns</span>
+                </div>
+                {marketData.map(m => {
+                  const rs = RARITY_STYLES[m.player_rarity] || RARITY_STYLES.common;
+                  return (
+                    <button key={m.player_id}
+                      onClick={() => loadPriceHistory(m.player_id)}
+                      className="w-full grid grid-cols-[1fr_4rem_4rem_4rem_4rem_3rem] gap-2 px-4 py-3 items-center border-b transition-colors hover:opacity-80"
+                      style={{ borderColor: 'var(--border-default)', background: selectedHistory === m.player_id ? 'color-mix(in srgb, var(--accent-secondary) 5%, transparent)' : 'transparent' }}
+                      data-testid={`market-row-${m.player_id}`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Badge className={`${rs.bg} ${rs.text} text-[9px] shrink-0`}>{rs.label}</Badge>
+                        <span className="text-sm truncate" style={{ color: 'var(--text-primary)' }}>{m.player_name}</span>
+                      </div>
+                      <span className="font-mono-data text-xs text-right" style={{ color: 'var(--text-secondary)' }}>{m.avg_price}</span>
+                      <span className="font-mono-data text-xs text-right" style={{ color: 'var(--accent)' }}>{m.min_price}</span>
+                      <span className="font-mono-data text-xs text-right" style={{ color: 'var(--accent-danger)' }}>{m.max_price}</span>
+                      <span className="font-mono-data text-xs text-right font-bold" style={{ color: 'var(--accent-secondary)' }}>{m.last_price}</span>
+                      <span className="font-mono-data text-xs text-right" style={{ color: 'var(--text-muted)' }}>{m.total_trades}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-10 text-center">
+                <BarChart3 className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--text-muted)' }} />
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Aucune donnée de marché</p>
+                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Les prix seront suivis après les premiers échanges</p>
+              </div>
+            )}
+          </Card>
+        </div>
+      )}
+
       {/* Open Trades */}
-      {trades.length > 0 ? (
+      {tab === 'market' && (trades.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children" data-testid="trades-list">
           {trades.map(trade => {
             const style = RARITY_STYLES[trade.player_rarity] || RARITY_STYLES.common;
@@ -195,7 +309,7 @@ export default function Trading() {
           <p style={{ color: 'var(--text-secondary)' }}>Aucune offre sur le marché</p>
           <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Soyez le premier à vendre un joueur !</p>
         </Card>
-      )}
+      ))}
 
       {/* Create Trade Modal */}
       <Dialog open={showSellModal} onOpenChange={setShowSellModal}>

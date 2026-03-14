@@ -98,6 +98,8 @@ export const tradesAPI = {
   create: (data) => api.post('/trades', data),
   buy: (tradeId) => api.post(`/trades/${tradeId}/buy`),
   cancel: (tradeId) => api.post(`/trades/${tradeId}/cancel`),
+  priceHistory: (playerId) => api.get(`/trades/price-history/${playerId}`),
+  marketOverview: () => api.get('/trades/market-overview'),
 };
 
 // Daily Challenge

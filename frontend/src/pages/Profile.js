@@ -9,15 +9,17 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { User, Save, Loader2, Zap } from 'lucide-react';
+import { User, Save, Loader2, Zap, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Profile() {
   const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ username: '', favorite_team: '' });
+  const [pwdForm, setPwdForm] = useState({ current: '', new_pwd: '' });
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [pwdLoading, setPwdLoading] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -36,6 +38,21 @@ export default function Profile() {
       toast.error(err.response?.data?.detail || 'Update failed');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    if (pwdForm.new_pwd.length < 6) { toast.error('Password must be at least 6 characters'); return; }
+    setPwdLoading(true);
+    try {
+      await authAPI.changePassword(pwdForm.current, pwdForm.new_pwd);
+      toast.success('Password changed!');
+      setPwdForm({ current: '', new_pwd: '' });
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Error');
+    } finally {
+      setPwdLoading(false);
     }
   };
 
@@ -120,6 +137,30 @@ export default function Profile() {
             <p className="text-sm font-medium" style={{ color: 'var(--accent)' }}>{user.level}</p>
           </div>
         </div>
+      </Card>
+
+      {/* Change Password */}
+      <Card className="border p-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
+        <h3 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
+          <Lock className="w-4 h-4 inline mr-2" /> Change Password
+        </h3>
+        <form onSubmit={handleChangePassword} className="space-y-4" data-testid="change-password-form">
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Current Password</Label>
+            <Input type="password" value={pwdForm.current} onChange={e => setPwdForm({ ...pwdForm, current: e.target.value })}
+              style={{ background: 'var(--bg-input)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }}
+              required data-testid="current-password-input" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>New Password</Label>
+            <Input type="password" value={pwdForm.new_pwd} onChange={e => setPwdForm({ ...pwdForm, new_pwd: e.target.value })}
+              style={{ background: 'var(--bg-input)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }}
+              placeholder="Min. 6 characters" required data-testid="new-password-input" />
+          </div>
+          <Button type="submit" disabled={pwdLoading} variant="outline" className="rounded-sm" style={{ borderColor: 'var(--border-default)', color: 'var(--text-primary)' }} data-testid="change-password-btn">
+            {pwdLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Lock className="w-4 h-4 mr-2" /> Change Password</>}
+          </Button>
+        </form>
       </Card>
     </div>
   );
