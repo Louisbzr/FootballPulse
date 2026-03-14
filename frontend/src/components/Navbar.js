@@ -10,12 +10,12 @@ import api from '@/lib/api';
 import NotificationBell from './NotificationBell';
 
 const NAV_ITEMS = [
-  { to: '/matches', label: 'Matches', icon: BarChart3 },
-  { to: '/predictions', label: 'Predictions', icon: Target },
+  { to: '/matches', label: 'Matchs', icon: BarChart3 },
+  { to: '/predictions', label: 'Pronostics', icon: Target },
   { to: '/packs', label: 'Packs', icon: Package },
-  { to: '/trading', label: 'Trading', icon: ArrowRightLeft },
-  { to: '/challenge', label: 'Challenge', icon: Gift },
-  { to: '/leaderboard', label: 'Leaderboard', icon: Trophy },
+  { to: '/trading', label: 'Échange', icon: ArrowRightLeft },
+  { to: '/challenge', label: 'Défi', icon: Gift },
+  { to: '/leaderboard', label: 'Classement', icon: Trophy },
 ];
 
 export default function Navbar() {
@@ -108,17 +108,17 @@ export default function Navbar() {
                   </div>
                   <DropdownMenuSeparator style={{ background: 'var(--border-default)' }} />
                   <DropdownMenuItem className="cursor-pointer" style={{ color: 'var(--text-primary)' }} onClick={() => navigate('/dashboard')} data-testid="nav-dashboard-link">
-                    <BarChart3 className="w-4 h-4 mr-2" /> Dashboard
+                    <BarChart3 className="w-4 h-4 mr-2" /> Tableau de bord
                   </DropdownMenuItem>
                   <DropdownMenuItem className="cursor-pointer" style={{ color: 'var(--text-primary)' }} onClick={() => navigate('/profile')} data-testid="nav-profile-link">
-                    <User className="w-4 h-4 mr-2" /> Profile
+                    <User className="w-4 h-4 mr-2" /> Profil
                   </DropdownMenuItem>
                   <DropdownMenuItem className="cursor-pointer" style={{ color: 'var(--text-primary)' }} onClick={() => navigate('/collection')} data-testid="nav-collection-link">
                     <BookOpen className="w-4 h-4 mr-2" /> Collection
                   </DropdownMenuItem>
                   <DropdownMenuSeparator style={{ background: 'var(--border-default)' }} />
                   <DropdownMenuItem className="cursor-pointer text-[#FF0055]" onClick={() => { logout(); navigate('/'); }} data-testid="nav-logout">
-                    <LogOut className="w-4 h-4 mr-2" /> Logout
+                    <LogOut className="w-4 h-4 mr-2" /> Déconnexion
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -126,11 +126,11 @@ export default function Navbar() {
           ) : (
             <div className="flex items-center gap-2">
               <Link to="/login">
-                <Button variant="ghost" className="text-sm" style={{ color: 'var(--text-secondary)' }} data-testid="nav-login">Login</Button>
+                <Button variant="ghost" className="text-sm" style={{ color: 'var(--text-secondary)' }} data-testid="nav-login">Connexion</Button>
               </Link>
               <Link to="/register">
                 <Button className="text-sm font-bold rounded-sm px-5" style={{ background: 'var(--accent)', color: '#000' }} data-testid="nav-register">
-                  Sign Up
+                  S'inscrire
                 </Button>
               </Link>
             </div>
@@ -153,7 +153,7 @@ export default function Navbar() {
           {user && (
             <>
               <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded" style={{ color: 'var(--text-secondary)' }}>
-                <BarChart3 className="w-4 h-4" /> Dashboard
+                <BarChart3 className="w-4 h-4" /> Tableau de bord
               </Link>
               <Link to="/collection" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded" style={{ color: 'var(--text-secondary)' }}>
                 <BookOpen className="w-4 h-4" /> Collection

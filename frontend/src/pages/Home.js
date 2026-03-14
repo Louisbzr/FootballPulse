@@ -30,33 +30,33 @@ export default function Home() {
         <div className="relative max-w-7xl mx-auto px-4 pt-24 pb-20">
           <div className="max-w-3xl">
             <Badge className="mb-6 rounded-sm text-xs font-bold uppercase tracking-widest px-3 py-1" style={{ background: 'color-mix(in srgb, var(--accent) 10%, transparent)', color: 'var(--accent)' }}>
-              Live Football Analytics
+              Analyse Football en Direct
             </Badge>
             <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-[0.9] mb-6" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
-              Analyze.<br />
-              <span className="neon-text" style={{ color: 'var(--accent)' }}>Predict.</span><br />
-              Dominate.
+              Analysez.<br />
+              <span className="neon-text" style={{ color: 'var(--accent)' }}>Prédisez.</span><br />
+              Dominez.
             </h1>
             <p className="text-base md:text-lg leading-relaxed mb-8 max-w-xl" style={{ color: 'var(--text-secondary)' }}>
-              Dive into match statistics, place virtual predictions, earn XP and climb the global leaderboard. Your football intelligence starts here.
+              Plongez dans les statistiques de matchs, placez vos pronostics virtuels, gagnez de l'XP et grimpez dans le classement mondial. Votre intelligence football commence ici.
             </p>
             <div className="flex flex-wrap gap-3">
               {!user ? (
                 <Link to="/register">
                   <Button className="font-bold uppercase tracking-wider hover:opacity-90 transition-all rounded-sm skew-btn px-8 py-5 text-sm" style={{ background: 'var(--accent)', color: '#000' }} data-testid="hero-signup-btn">
-                    <span className="flex items-center gap-2"><Zap className="w-4 h-4" /> Get Started</span>
+                    <span className="flex items-center gap-2"><Zap className="w-4 h-4" /> Commencer</span>
                   </Button>
                 </Link>
               ) : (
                 <Link to="/predictions">
                   <Button className="font-bold uppercase tracking-wider hover:opacity-90 rounded-sm skew-btn px-8 py-5 text-sm" style={{ background: 'var(--accent)', color: '#000' }} data-testid="hero-predictions-btn">
-                    <span className="flex items-center gap-2"><Target className="w-4 h-4" /> Place Predictions</span>
+                    <span className="flex items-center gap-2"><Target className="w-4 h-4" /> Placer un pronostic</span>
                   </Button>
                 </Link>
               )}
               <Link to="/matches">
                 <Button variant="outline" className="rounded-sm px-8 py-5 text-sm" style={{ borderColor: 'var(--border-hover)', color: 'var(--text-primary)' }} data-testid="hero-matches-btn">
-                  View Matches
+                  Voir les matchs
                 </Button>
               </Link>
             </div>
@@ -65,9 +65,9 @@ export default function Home() {
           {/* Stats strip */}
           <div className="grid grid-cols-3 gap-4 mt-16 max-w-md">
             {[
-              { value: matches.length || '8+', label: 'Matches', icon: Activity },
-              { value: '1,000', label: 'Starting Credits', icon: TrendingUp },
-              { value: leaders.length || '0', label: 'Competitors', icon: Trophy },
+              { value: matches.length || '8+', label: 'Matchs', icon: Activity },
+              { value: '1 000', label: 'Crédits de départ', icon: TrendingUp },
+              { value: leaders.length || '0', label: 'Compétiteurs', icon: Trophy },
             ].map(({ value, label, icon: Icon }) => (
               <div key={label} className="text-center">
                 <Icon className="w-4 h-4 mx-auto mb-1" style={{ color: 'var(--accent)' }} />
@@ -79,15 +79,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Upcoming Matches */}
+      {/* Matchs à venir */}
       {upcoming.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 py-12" data-testid="upcoming-matches-section">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl md:text-3xl font-bold tracking-tight uppercase" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
-              Upcoming Matches
+              Matchs à venir
             </h2>
             <Link to="/matches" className="text-sm flex items-center gap-1 transition-colors hover:opacity-80" style={{ color: 'var(--text-muted)' }}>
-              View all <ArrowRight className="w-3 h-3" />
+              Tout voir <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 stagger-children">
@@ -96,15 +96,15 @@ export default function Home() {
         </section>
       )}
 
-      {/* Recent Results */}
+      {/* Résultats récents */}
       {finished.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 py-12" data-testid="recent-results-section">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl md:text-3xl font-bold tracking-tight uppercase" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
-              Recent Results
+              Résultats récents
             </h2>
             <Link to="/matches?status=finished" className="text-sm flex items-center gap-1 transition-colors hover:opacity-80" style={{ color: 'var(--text-muted)' }}>
-              View all <ArrowRight className="w-3 h-3" />
+              Tout voir <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 stagger-children">
@@ -113,15 +113,15 @@ export default function Home() {
         </section>
       )}
 
-      {/* Leaderboard Preview */}
+      {/* Classement */}
       {leaders.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 py-12 pb-20" data-testid="leaderboard-preview-section">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl md:text-3xl font-bold tracking-tight uppercase" style={{ fontFamily: 'Barlow Condensed, sans-serif', color: 'var(--text-primary)' }}>
-              Top Predictors
+              Meilleurs pronostiqueurs
             </h2>
             <Link to="/leaderboard" className="text-sm flex items-center gap-1 transition-colors hover:opacity-80" style={{ color: 'var(--text-muted)' }}>
-              Full leaderboard <ArrowRight className="w-3 h-3" />
+              Classement complet <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
           <div className="glass-card rounded-xl overflow-hidden">
@@ -140,7 +140,7 @@ export default function Home() {
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-mono-data" style={{ color: 'var(--accent)' }}>{l.xp} XP</p>
-                  <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{l.wins}W - {l.win_rate}%</p>
+                  <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{l.wins}V - {l.win_rate}%</p>
                 </div>
               </div>
             ))}
