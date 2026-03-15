@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import CORSMiddleware as StarletteCorsMW
 import socketio
 import logging
 import os
 import sys
-import re
 
 # Add backend dir to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -26,17 +26,6 @@ app.include_router(gacha.router)
 app.include_router(notifications.router)
 app.include_router(missions.router)
 
-origins = os.environ.get('CORS_ORIGINS', '').split(',')
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=origins,
-    allow_origin_regex=r"https://.*\.vercel\.app",
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 @app.get("/api/health")
@@ -50,5 +39,14 @@ async def shutdown_db_client():
 # Mount Socket.IO as ASGI app
 socket_app = socketio.ASGIApp(sio, other_asgi_app=app)
 
-# The socket_app is the actual ASGI application to run
-app = socket_app
+origins = os.environ.get('CORS_ORIGINS', '').split(',')
+
+# Apply CORS on the final app (socket_app)
+app = StarletteCorsMW(
+    app=socket_app,
+    allow_origins=origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
