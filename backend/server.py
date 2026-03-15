@@ -4,6 +4,7 @@ import socketio
 import logging
 import os
 import sys
+import re
 
 # Add backend dir to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -25,10 +26,13 @@ app.include_router(gacha.router)
 app.include_router(notifications.router)
 app.include_router(missions.router)
 
+origins = os.environ.get('CORS_ORIGINS', '').split(',')
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_methods=["*"],
     allow_headers=["*"],
 )

@@ -36,6 +36,8 @@
     --neon-red: #FF0055;
     --surface: #121212;
     --surface-highlight: #1E1E1E;
+    --accent: 110 100% 54%;
+    --text-primary: 0 0% 98%;
   }
 
   [data-theme="light"] {
@@ -68,6 +70,8 @@
     --neon-red: #DC2626;
     --surface: #FFFFFF;
     --surface-highlight: #F0F0F2;
+    --accent: 142 72% 37%; 
+    --text-primary: 0 0% 7%;
   }
 }
 

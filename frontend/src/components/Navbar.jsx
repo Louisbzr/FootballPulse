@@ -39,11 +39,9 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 group" data-testid="nav-logo">
-          <div className="w-8 h-8 rounded flex items-center justify-center transition-shadow" style={{ background: 'var(--accent)' }}>
-            <Zap className="w-5 h-5 text-black" />
-          </div>
+          <img src="/footballpulse_logo.svg" alt="FootballPulse" width={32} height={32} />
           <span className="text-lg font-bold tracking-tight" style={{ color: 'var(--text-primary)', fontFamily: 'Barlow Condensed, sans-serif' }}>
-            MATCH<span style={{ color: 'var(--accent)' }}>PULSE</span>
+            FOOTBALL<span style={{ color: 'var(--accent)' }}>PULSE</span>
           </span>
         </Link>
 
