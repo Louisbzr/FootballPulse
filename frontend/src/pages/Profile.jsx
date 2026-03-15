@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { authAPI, teamsAPI } from '@/lib/api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { authAPI, matchesAPI } from '@/lib/api';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,7 +24,18 @@ export default function Profile() {
   useEffect(() => {
     if (!user) return;
     setForm({ username: user.username || '', favorite_team: user.favorite_team || '' });
-    teamsAPI.list().then(r => setTeams(r.data)).catch(() => {});
+    
+    // Remplacer teamsAPI.list() par les équipes des matchs
+    matchesAPI.list().then(r => {
+      const seen = new Set();
+      const uniqueTeams = [];
+      r.data.forEach(m => {
+        if (!seen.has(m.home_team.id)) { seen.add(m.home_team.id); uniqueTeams.push(m.home_team); }
+        if (!seen.has(m.away_team.id)) { seen.add(m.away_team.id); uniqueTeams.push(m.away_team); }
+      });
+      uniqueTeams.sort((a, b) => a.name.localeCompare(b.name));
+      setTeams(uniqueTeams);
+    }).catch(() => {});
   }, [user]);
 
   const handleSubmit = async (e) => {

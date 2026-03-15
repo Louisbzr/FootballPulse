@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Zap, Mail, Lock, Loader2 } from 'lucide-react';
+import { Zap, Mail, Lock, Loader2, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Login() {
@@ -31,6 +31,15 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-20" data-testid="login-page">
       <Card className="w-full max-w-md relative" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-default)' }}>
+        <button
+          onClick={() => navigate('/')}
+          className="absolute top-3 right-3 p-1 rounded hover:opacity-70 transition-opacity"
+          style={{ color: 'var(--text-muted)' }}
+          aria-label="Fermer"
+          data-testid="close-btn"
+        >
+          <X className="w-5 h-5" />
+        </button>
         <CardHeader className="text-center pb-4">
           <div className="w-12 h-12 rounded flex items-center justify-center mx-auto mb-4" style={{ background: 'var(--accent)' }}>
             <Zap className="w-7 h-7 text-black" />

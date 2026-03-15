@@ -280,3 +280,16 @@ async def clean_mock_data(user=Depends(get_current_user)):
     result = await db.matches.delete_many({"source": {"$ne": "api-football"}})
     events_result = await db.match_events.delete_many({"match_id": {"$not": {"$regex": "^api_"}}})
     return {"deleted_matches": result.deleted_count, "deleted_events": events_result.deleted_count}
+
+@router.post("/seed")
+async def seed():  # ← pas de Depends(get_current_user)
+    return {"status": "ok"}
+
+@router.post("/seed-players")
+async def seed_players():  # ← pas de Depends(get_current_user)
+    from data.players import PLAYERS_DATA
+    count = 0
+    for player in PLAYERS_DATA:
+        await db.players.update_one({"id": player["id"]}, {"$set": player}, upsert=True)
+        count += 1
+    return {"status": "ok", "seeded": count}

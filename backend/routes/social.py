@@ -1,7 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends
 from config import db, get_current_user, add_xp, LEVELS
 from models import CommentCreate
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+import uuid
+
 
 router = APIRouter(prefix="/api")
 
@@ -127,6 +129,3 @@ async def get_dashboard(user=Depends(get_current_user)):
         "recent_bets": bets[:10],
         "badges": user.get("badges", []),
     }
-
-import uuid
-from datetime import timedelta

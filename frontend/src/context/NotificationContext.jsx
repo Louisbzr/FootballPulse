@@ -37,7 +37,7 @@ export function NotificationProvider({ children }) {
     }
 
     const token = localStorage.getItem('token');
-    const baseUrl = process.env.REACT_APP_BACKEND_URL;
+    const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
     
     const socket = io(baseUrl, {
       auth: { token },
